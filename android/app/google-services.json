@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "26449903748",
+    "project_id": "ahenfie-media",
+    "storage_bucket": "ahenfie-media.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:26449903748:android:aa3a7a35f10b71f8ea02d1",
+        "android_client_info": {
+          "package_name": "com.localcode.ahenfiemedia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0hwciY_p5NWqXSQ6CEKT0DUGSxgIeThw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
