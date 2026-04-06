@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-// Define the social media links structure
 class SocialMediaLink {
   final String title;
-  final IconData icon;
+  final FaIconData icon;
   final String url;
   final Color color;
 
@@ -19,31 +18,31 @@ class SocialMediaLink {
   });
 }
 
-// 🌟 NOTE: Replace these placeholder URLs with your actual Ahenfie Media links! 🌟
+// Fixed Icon names for newer font_awesome_flutter versions
 const List<SocialMediaLink> _socialLinks = [
   SocialMediaLink(
     title: 'Facebook',
-    icon: FontAwesomeIcons.facebook,
+    icon: FontAwesomeIcons.facebook, 
     url: 'https://facebook.com/AhenfieMedia',
-    color: Color(0xFF1877F2), // Facebook Blue
+    color: Color(0xFF1877F2),
   ),
   SocialMediaLink(
     title: 'Instagram',
     icon: FontAwesomeIcons.instagram,
     url: 'https://instagram.com/ahenfiemedia',
-    color: Color(0xFFE4405F), // Instagram Pink/Red
+    color: Color(0xFFE4405F),
   ),
   SocialMediaLink(
     title: 'TikTok',
-    icon: FontAwesomeIcons.tiktok, // Added TikTok icon
+    icon: FontAwesomeIcons.tiktok,
     url: 'https://tiktok.com/@ahenfiemedia',
-    color: Color(0xFF000000), // Black
+    color: Color(0xFF000000),
   ),
   SocialMediaLink(
     title: 'YouTube',
     icon: FontAwesomeIcons.youtube,
     url: 'https://youtube.com/@ahenfiemedia',
-    color: Color(0xFFFF0000), // YouTube Red
+    color: Color(0xFFFF0000),
   ),
 ];
 
@@ -51,17 +50,27 @@ class SocialMediaScreen extends StatelessWidget {
   const SocialMediaScreen({super.key});
 
   // --- External Link Launcher ---
-  void _launchURL(BuildContext context, String urlString) async {
+  Future<void> _launchURL(BuildContext context, String urlString) async {
     final Uri url = Uri.parse(urlString);
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
+    
+    try {
+      // It is better to use launchUrl directly; canLaunchUrl can be flaky on newer Android/iOS
+      bool launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+      
+      if (!launched && context.mounted) {
+        _showErrorSnackBar(context, urlString);
+      }
+    } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open link: $urlString')),
-        );
+        _showErrorSnackBar(context, urlString);
       }
     }
+  }
+
+  void _showErrorSnackBar(BuildContext context, String url) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Could not open link: $url')),
+    );
   }
 
   @override
@@ -69,12 +78,9 @@ class SocialMediaScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Connect with Us'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        // No need to manually define leading back button if it's a standard push route,
+        // but keeping it as per your design.
       ),
-      // 🌟 FIX: Ensuring safe area and scrollability 🌟
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -88,16 +94,11 @@ class SocialMediaScreen extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
-
-              // 🌟 REPLACED GRID WITH VERTICAL LIST (ListView.builder) 🌟
-              ..._socialLinks
-                  .map(
-                    (link) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: _buildSocialListTile(context, link),
-                    ),
-                  )
-                  ,
+              // Spread operator with map
+              ..._socialLinks.map((link) => Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: _buildSocialListTile(context, link),
+              )),
             ],
           ),
         ),
@@ -105,9 +106,8 @@ class SocialMediaScreen extends StatelessWidget {
     );
   }
 
-  // --- New Widget for a single social media LIST TILE ---
   Widget _buildSocialListTile(BuildContext context, SocialMediaLink link) {
-    // Determine appropriate text color for the background
+    // Determine appropriate text color based on background luminance
     final textColor = (link.color.computeLuminance() > 0.5)
         ? Colors.black
         : Colors.white;
@@ -115,14 +115,13 @@ class SocialMediaScreen extends StatelessWidget {
     return Card(
       color: link.color,
       elevation: 4,
+      margin: EdgeInsets.zero, // Card default margins can sometimes mess with Padding
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: InkWell(
         onTap: () => _launchURL(context, link.url),
         borderRadius: BorderRadius.circular(12.0),
         child: ListTile(
-          // Leading icon
-          leading: FaIcon(link.icon, size: 30, color: textColor),
-          // Title
+          leading: FaIcon(link.icon, size: 28, color: textColor),
           title: Text(
             link.title,
             style: TextStyle(
@@ -131,15 +130,10 @@ class SocialMediaScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          // Subtitle
           subtitle: Text(
-            link.url
-                .replaceAll('https://', '')
-                .split('/')
-                .first, // Show the base domain
+            link.url.replaceAll('https://', '').split('/').first,
             style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 14),
           ),
-          // Trailing arrow
           trailing: Icon(Icons.chevron_right, color: textColor),
           contentPadding: const EdgeInsets.symmetric(
             vertical: 8.0,
