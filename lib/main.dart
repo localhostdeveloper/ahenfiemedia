@@ -24,7 +24,7 @@ void main() async {
     );
 
     // 3. Initialize Audio Background BEFORE other notification services
-    // Audio background is often more critical for the app's startup flow
+    
     await JustAudioBackground.init(
       androidNotificationChannelId: 'com.ahenfie.radio.channel.audio',
       androidNotificationChannelName: 'Ahenfie FM Radio',
@@ -33,7 +33,7 @@ void main() async {
     );
 
     // 4. Initialize FCM Notifications
-    // Removed the duplicate call.
+    
     await NotificationService.instance.initialize();
 
   } catch (e) {
@@ -43,13 +43,13 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: Channel247App(),
+      child: AhenfieMedia(),
     ),
   );
 }
 
-class Channel247App extends ConsumerWidget {
-  const Channel247App({super.key});
+class AhenfieMedia extends ConsumerWidget {
+  const AhenfieMedia({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
