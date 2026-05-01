@@ -1,7 +1,7 @@
 // lib/screens/menu_screen/notifications_screen.dart
 
 import 'package:flutter/material.dart';
-// 🌟 NEW IMPORTS 🌟
+
 import 'notification_detail_screen.dart'; // Target detail page
 import '../../services/notification_service.dart';
 import '../../models/app_notification.dart';

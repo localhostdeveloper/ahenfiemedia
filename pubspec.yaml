@@ -23,8 +23,8 @@ dependencies:
   change_app_package_name: ^1.5.0
   rxdart: ^0.28.0
   shared_preferences: ^2.5.3
-  upgrader: ^12.1.0
-  package_info_plus: ^9.0.0
+  upgrader: ^13.1.0
+  package_info_plus: ^10.1.0
   flutter_cache_manager: ^3.4.1
   android_pip: ^2.0.1
   provider: ^6.1.5+1
