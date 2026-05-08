@@ -92,7 +92,7 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
         album: AppConstants.radioName,
         title: AppConstants.radioMetadataTitle,
         artist: AppConstants.radioMetadataArtist,
-        artUri: Uri.parse(AppConstants.radioLogoUrl),
+        artUri: Uri.parse('assets:///assets/images/ahenfiefm.png'),
         genre: 'Radio',
         duration: null, // Live stream has no fixed duration
       );

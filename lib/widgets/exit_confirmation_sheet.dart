@@ -17,7 +17,7 @@ class ExitConfirmationSheet extends StatelessWidget {
         child: Container(
           // Use a slightly softer background color for contrast against white scaffold
           decoration: BoxDecoration(
-            color: AppColors.background,
+            color: AppColors.pureWhite,
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(16.0),
             ),
@@ -65,7 +65,7 @@ class ExitConfirmationSheet extends StatelessWidget {
                       ).pop(true); // Close sheet and handle exit
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentGold,
+                      backgroundColor: AppColors.brandGold,
                       foregroundColor: AppColors.primaryBlack,
                     ),
                     child: const Text('Yes, Exit'),

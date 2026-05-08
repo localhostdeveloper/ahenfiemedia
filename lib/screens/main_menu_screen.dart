@@ -70,8 +70,8 @@ class MainMenuScreen extends StatelessWidget {
     required Color color,
   }) {
     final textColor = (color == AppColors.primaryBlack)
-        ? AppColors.textLight
-        : AppColors.textDark;
+        ? AppColors.pureWhite
+        : AppColors.primaryBlack;
 
     return Card(
       color: color,
@@ -89,8 +89,8 @@ class MainMenuScreen extends StatelessWidget {
                 size: 40,
                 color:
                     (color == AppColors.primaryBlack ||
-                        color == AppColors.darkBackgroundAccent)
-                    ? AppColors.accentGold
+                        color == AppColors.brandGold)
+                    ? AppColors.brandGold
                     : AppColors.primaryBlack,
               ),
               const SizedBox(width: 25),

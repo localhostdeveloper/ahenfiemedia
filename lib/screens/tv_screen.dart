@@ -1,86 +1,501 @@
-// lib/screens/tv_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chewie/chewie.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../services/tv_service.dart'; // Uses the new TV service
+import '../core/theme/app_colors.dart';
 
-class TVScreen extends StatefulWidget {
+import '../providers/tv_player_provider.dart';
+
+import '../models/program.dart';
+
+import '../widgets/program_schedule_card.dart';
+
+class TVScreen extends ConsumerStatefulWidget {
   final VoidCallback onEnter;
-  const TVScreen({super.key, required this.onEnter});
+
+  const TVScreen({
+    super.key,
+    required this.onEnter,
+  });
 
   @override
-  State<TVScreen> createState() => _TVScreenState();
+  ConsumerState<TVScreen> createState() =>
+      _TVScreenState();
 }
 
-class _TVScreenState extends State<TVScreen> {
-  final TVService _tvService = TVService();
+class _TVScreenState
+    extends ConsumerState<TVScreen> {
 
   @override
   void initState() {
     super.initState();
-    // 1. Stop the radio player
+
+    // STOP RADIO WHEN TV OPENS
     widget.onEnter();
-
-    // 2. Initialize the TV Service player
-    _tvService.initializePlayer();
-  }
-
-  @override
-  void dispose() {
-    // 3. Dispose the TV player when the screen is exited
-    _tvService.disposePlayer();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final tvState =
+        ref.watch(tvPlayerProvider);
+
     return Scaffold(
-      body: Center(
-        child: StreamBuilder<TVState>(
-          stream: _tvService.tvStateStream,
-          builder: (context, snapshot) {
-            final state = snapshot.data;
+      backgroundColor: AppColors.background,
 
-            // 1. Show Loading (uses theme progressIndicatorTheme)
-            if (state == null || state.isLoading) {
-              return const CircularProgressIndicator();
-            }
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        toolbarHeight: 0,
+      ),
 
-            // 2. Show Error Message (uses theme error color)
-            if (state.errorMessage != null) {
-              return Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 40,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // =====================================
+            // TV PLAYER SECTION
+            // =====================================
+
+            Container(
+              margin:
+                  const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+
+                borderRadius:
+                    BorderRadius.circular(26),
+
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black
+                        .withOpacity(0.25),
+
+                    blurRadius: 20,
+
+                    offset: const Offset(
+                      0,
+                      10,
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      state.errorMessage!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                        fontSize: 16,
+                  ),
+                ],
+              ),
+
+              clipBehavior: Clip.antiAlias,
+
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+
+                child: switch (tvState.state) {
+
+                  // =====================
+                  // LOADING
+                  // =====================
+
+                  TVPlayerState.loading =>
+                    Container(
+                      color:
+                          AppColors.surface,
+
+                      child: const Column(
+                        mainAxisAlignment:
+                            MainAxisAlignment
+                                .center,
+
+                        children: [
+                          CircularProgressIndicator(
+                            color: AppColors
+                                .primaryGold,
+                          ),
+
+                          SizedBox(height: 18),
+
+                          Text(
+                            'Loading TV Stream...',
+
+                            style: TextStyle(
+                              color: AppColors
+                                  .textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ],
+
+                  // =====================
+                  // ERROR
+                  // =====================
+
+                  TVPlayerState.error =>
+                    Container(
+                      padding:
+                          const EdgeInsets.all(
+                        20,
+                      ),
+
+                      color:
+                          AppColors.surface,
+
+                      child: Column(
+                        mainAxisAlignment:
+                            MainAxisAlignment
+                                .center,
+
+                        children: [
+                          const Icon(
+                            Icons
+                                .tv_off_rounded,
+
+                            color: Colors.red,
+
+                            size: 52,
+                          ),
+
+                          const SizedBox(
+                            height: 16,
+                          ),
+
+                          Text(
+                            tvState.errorMessage ??
+                                'Failed to load stream',
+
+                            textAlign:
+                                TextAlign.center,
+
+                            style:
+                                const TextStyle(
+                              color: AppColors
+                                  .textPrimary,
+
+                              fontSize: 16,
+                            ),
+                          ),
+
+                          const SizedBox(
+                            height: 20,
+                          ),
+
+                          ElevatedButton(
+                            onPressed: () {
+                              ref
+                                  .read(
+                                    tvPlayerProvider
+                                        .notifier,
+                                  )
+                                  .retry();
+                            },
+
+                            style:
+                                ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  AppColors
+                                      .primaryGold,
+                            ),
+
+                            child: const Text(
+                              'Retry',
+                              style: TextStyle(
+                                color:
+                                    Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // =====================
+                  // PLAYER
+                  // =====================
+
+                  TVPlayerState.playing =>
+                    Chewie(
+                      controller:
+                          tvState
+                              .chewieController!,
+                    ),
+                },
+              ),
+            ),
+
+            // =====================================
+            // TV DETAILS
+            // =====================================
+
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment
+                              .start,
+
+                      children: [
+                        Text(
+                          'Ahenfie TV',
+
+                          style: TextStyle(
+                            color: AppColors
+                                .textPrimary,
+
+                            fontSize: 24,
+
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        ),
+
+                        SizedBox(height: 6),
+
+                        Text(
+                          'Satellite Television • Live Broadcast',
+
+                          style: TextStyle(
+                            color: AppColors
+                                .textSecondary,
+
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+
+                    decoration: BoxDecoration(
+                      color: Colors.red
+                          .withOpacity(0.12),
+
+                      borderRadius:
+                          BorderRadius.circular(
+                        16,
+                      ),
+                    ),
+
+                    child: const Text(
+                      '● LIVE',
+
+                      style: TextStyle(
+                        color: Colors.red,
+
+                        fontWeight:
+                            FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // =====================================
+            // EPG SECTION
+            // =====================================
+
+            Expanded(
+              child: Container(
+                width: double.infinity,
+
+                decoration:
+                    const BoxDecoration(
+                  color: AppColors.surface,
+
+                  borderRadius:
+                      BorderRadius.vertical(
+                    top: Radius.circular(32),
+                  ),
                 ),
-              );
-            }
 
-            // 3. Show Player
-            if (state.chewieController != null) {
-              return Chewie(controller: state.chewieController!);
-            }
+                child: Padding(
+                  padding:
+                      const EdgeInsets.all(20),
 
-            // Fallback
-            return const Text("TV Stream initializing...");
-          },
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+
+                    children: [
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment
+                                .spaceBetween,
+
+                        children: [
+                          const Text(
+                            'TV Schedule',
+
+                            style: TextStyle(
+                              color: AppColors
+                                  .textPrimary,
+
+                              fontSize: 20,
+
+                              fontWeight:
+                                  FontWeight.bold,
+                            ),
+                          ),
+
+                          Container(
+                            padding:
+                                const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+
+                            decoration:
+                                BoxDecoration(
+                              color: AppColors
+                                  .primaryGold
+                                  .withOpacity(
+                                0.10,
+                              ),
+
+                              borderRadius:
+                                  BorderRadius.circular(
+                                14,
+                              ),
+                            ),
+
+                            child: const Text(
+                              'EPG',
+
+                              style: TextStyle(
+                                color: AppColors
+                                    .primaryGold,
+
+                                fontWeight:
+                                    FontWeight.bold,
+
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      // PROGRAMS
+                      Expanded(
+                        child:
+                            StreamBuilder<
+                                QuerySnapshot
+                            >(
+                          stream:
+                              FirebaseFirestore
+                                  .instance
+                                  .collection(
+                                    'tv_programs',
+                                  )
+                                  .orderBy(
+                                    'time',
+                                  )
+                                  .snapshots(),
+
+                          builder: (
+                            context,
+                            snapshot,
+                          ) {
+
+                            // ERROR
+                            if (snapshot
+                                .hasError) {
+                              return const Center(
+                                child: Text(
+                                  'Failed to load TV schedule',
+
+                                  style: TextStyle(
+                                    color:
+                                        AppColors
+                                            .error,
+                                  ),
+                                ),
+                              );
+                            }
+
+                            // LOADING
+                            if (snapshot
+                                    .connectionState ==
+                                ConnectionState
+                                    .waiting) {
+                              return const Center(
+                                child:
+                                    CircularProgressIndicator(
+                                  color: AppColors
+                                      .primaryGold,
+                                ),
+                              );
+                            }
+
+                            final docs =
+                                snapshot.data
+                                        ?.docs ??
+                                    [];
+
+                            // EMPTY
+                            if (docs.isEmpty) {
+                              return const Center(
+                                child: Text(
+                                  'No TV programs available',
+
+                                  style: TextStyle(
+                                    color: AppColors
+                                        .textSecondary,
+                                  ),
+                                ),
+                              );
+                            }
+
+                            // LIST
+                            return ListView.builder(
+                              physics:
+                                  const BouncingScrollPhysics(),
+
+                              itemCount:
+                                  docs.length,
+
+                              itemBuilder:
+                                  (
+                                    context,
+                                    index,
+                                  ) {
+
+                                final program =
+                                    Program.fromFirestore(
+                                  docs[index],
+                                );
+
+                                return ProgramScheduleCard(
+                                  program:
+                                      program,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

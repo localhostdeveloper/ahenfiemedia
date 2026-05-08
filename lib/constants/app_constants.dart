@@ -9,7 +9,7 @@ class AppConstants {
   // --- Radio Stream ---
   static const String radioStreamUrl =
       'https://radio.localstreamgh.com/listen/ahenfie_radio_/radio.mp3';
-  static const String radioLogoUrl = 'https://i.imgur.com/oLHrmBI.jpeg';
+  static const String radioLogoUrl = 'assets/images/ahenfiefm.png';
   static const String radioMetadataTitle = 'Ahenfie FM';
   static const String radioMetadataArtist = '106.1MHz ';
   static const String radioChannelId = 'com.ahenfiemedia.radio';

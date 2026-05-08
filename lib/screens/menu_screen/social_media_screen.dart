@@ -23,25 +23,25 @@ const List<SocialMediaLink> _socialLinks = [
   SocialMediaLink(
     title: 'Facebook',
     icon: FontAwesomeIcons.facebook, 
-    url: 'https://facebook.com/AhenfieMedia',
+    url: 'https://www.facebook.com/people/Ahenfie-1061-FM/61585644356322/',
     color: Color(0xFF1877F2),
   ),
   SocialMediaLink(
     title: 'Instagram',
     icon: FontAwesomeIcons.instagram,
-    url: 'https://instagram.com/ahenfiemedia',
+    url: 'https://www.instagram.com/ahenfie106.1fm',
     color: Color(0xFFE4405F),
   ),
   SocialMediaLink(
     title: 'TikTok',
     icon: FontAwesomeIcons.tiktok,
-    url: 'https://tiktok.com/@ahenfiemedia',
+    url: 'https://www.tiktok.com/@ahenfie1061fm',
     color: Color(0xFF000000),
   ),
   SocialMediaLink(
     title: 'YouTube',
     icon: FontAwesomeIcons.youtube,
-    url: 'https://youtube.com/@ahenfiemedia',
+    url: 'https://www.youtube.com/@AhenfieMediagh',
     color: Color(0xFFFF0000),
   ),
 ];

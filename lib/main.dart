@@ -7,7 +7,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'constants/app_constants.dart';
-import 'constants/app_theme.dart';
+// import 'constants/app_theme.dart';
+
+import 'core/theme/app_theme.dart';
 
 import 'providers/theme_provider.dart';
 import 'services/notification_service.dart';
@@ -59,8 +61,8 @@ class AhenfieMedia extends ConsumerWidget {
       title: AppConstants.appTitle,
       navigatorKey: navigatorKey,
       themeMode: themeMode,
-      theme: AppThemes.lightTheme,
-      darkTheme: AppThemes.darkTheme,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
       home: const HomeScreen(),
     );
