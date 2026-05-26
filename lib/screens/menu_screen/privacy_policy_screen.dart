@@ -1,158 +1,159 @@
-// lib/screens/privacy_policy_screen.dart
-
 import 'package:flutter/material.dart';
+
+import '../../core/theme/app_colors.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: const Text('Privacy Policy'),
-        // Back button since this screen is accessed via the overflow menu
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        backgroundColor: colors.background,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            // --- Introduction ---
-            _buildSectionTitle(context, '1. Introduction'),
-            _buildPolicyText(
-              'Ahenfie Media ("we," "our," or "us") is committed to protecting the privacy of our users. This Privacy Policy describes how we collect, use, and disclose information when you use our mobile application ("App").',
+          children: [
+            _section('1. Introduction'),
+            _body(
+              context,
+              'Ahenfie Media ("we," "our," or "us") is committed to protecting the privacy of our users. '
+              'This Privacy Policy describes how we collect, use, and disclose information when you use our mobile application ("App").',
             ),
-            const SizedBox(height: 10),
-            _buildPolicyText(
+            _body(
+              context,
               'By using the App, you agree to the collection and use of information in accordance with this policy.',
             ),
 
-            // --- Information We Collect ---
-            _buildDivider(),
-            _buildSectionTitle(context, '2. Information We Collect'),
-
-            _buildSubtitle('2.1 Non-Personal Data'),
-            _buildPolicyText(
-              'We collect information that your device sends whenever you use our App. This usage data may include information such as your device\'s IP address, device type, operating system version, the time and date of your use, and diagnostic data related to streaming quality and connection performance.',
+            _section('2. Information We Collect'),
+            _sub(context, '2.1 Non-Personal Data'),
+            _body(
+              context,
+              'We collect information that your device sends whenever you use our App. This may include your device\'s IP address, '
+              'device type, operating system version, time and date of use, and diagnostic data related to streaming quality.',
+            ),
+            _sub(context, '2.2 Personal Data (Optional)'),
+            _body(
+              context,
+              'We do not require personal information to use our basic services (Radio, TV). If you choose to interact with notifications, '
+              'we may collect identifiers necessary to provide those services.',
             ),
 
-            _buildSubtitle('2.2 Personal Data (Optional)'),
-            _buildPolicyText(
-              'We do not require personal information (like email, name, or phone number) to use our basic services (Radio, TV). If you choose to interact with features like notifications or comments, we may collect identifiers necessary to provide those services.',
+            _section('3. Use of Data'),
+            _body(context, 'We use collected information to:'),
+            _bullet(context, 'Provide and maintain the App service.'),
+            _bullet(context, 'Notify you about changes to our service.'),
+            _bullet(context, 'Analyse usage to improve performance and streaming quality.'),
+            _bullet(context, 'Monitor the App and detect technical issues.'),
+
+            _section('4. Disclosure of Data'),
+            _body(
+              context,
+              'We may share non-personal information with third-party service providers (such as analytics partners like Google Analytics) '
+              'to monitor and analyse the use of our App.',
             ),
 
-            // --- How We Use Your Information ---
-            _buildDivider(),
-            _buildSectionTitle(context, '3. Use of Data'),
-            _buildPolicyText(
-              'We use the collected information for various purposes:',
-            ),
-            _buildBulletPoint('To provide and maintain the App service.'),
-            _buildBulletPoint('To notify you about changes to our service.'),
-            _buildBulletPoint(
-              'To analyze usage so that we can improve the App\'s performance and streaming quality.',
-            ),
-            _buildBulletPoint(
-              'To monitor the usage of the App and detect and address technical issues.',
+            _section('5. Security of Data'),
+            _body(
+              context,
+              'The security of your data is important to us. While we strive to use commercially acceptable means to protect your data, '
+              'no method of transmission over the Internet is 100% secure.',
             ),
 
-            // --- Disclosure of Data ---
-            _buildDivider(),
-            _buildSectionTitle(context, '4. Disclosure of Data'),
-            _buildPolicyText(
-              'We may share your non-personal information with third-party service providers (such as analytics partners like Google Analytics or crash reporting tools) to monitor and analyze the use of our App.',
+            _section('6. Changes to This Policy'),
+            _body(
+              context,
+              'We may update our Privacy Policy from time to time. We will notify you of changes by posting the new Privacy Policy '
+              'in the App. You are advised to review this page periodically.',
             ),
 
-            // --- Security of Data ---
-            _buildDivider(),
-            _buildSectionTitle(context, '5. Security of Data'),
-            _buildPolicyText(
-              'The security of your data is important to us, but remember that no method of transmission over the Internet is 100% secure. While we strive to use commercially acceptable means to protect your data, we cannot guarantee its absolute security.',
-            ),
+            _section('7. Contact Us'),
+            _body(context, 'If you have any questions about this Privacy Policy, contact us:'),
+            _bullet(context, 'Email: support@ahenfiemedia.com'),
+            _bullet(context, 'Through the "About Us" section in the App.'),
 
-            // --- Changes to this Policy ---
-            _buildDivider(),
-            _buildSectionTitle(context, '6. Changes to this Privacy Policy'),
-            _buildPolicyText(
-              'We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy in the App and updating the "effective date" at the bottom of this page. You are advised to review this Privacy Policy periodically for any changes.',
-            ),
-
-            // --- Contact Us ---
-            _buildDivider(),
-            _buildSectionTitle(context, '7. Contact Us'),
-            _buildPolicyText(
-              'If you have any questions about this Privacy Policy, please contact us:',
-            ),
-            _buildBulletPoint('By email: support@ahenfiemedia.com'),
-            _buildBulletPoint('Through the "About Us" section in the App.'),
-
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Text(
               'Effective Date: December 6, 2024',
-              style: Theme.of(context).textTheme.bodySmall,
+              style: TextStyle(color: colors.textMuted, fontSize: 12),
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
 
-  // --- Helper Widgets ---
-
-  Widget _buildSectionTitle(BuildContext context, String title) {
+  Widget _section(String title) {
     return Padding(
-      padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+      padding: const EdgeInsets.only(top: 24, bottom: 10),
       child: Text(
         title,
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
+        style: const TextStyle(
+          color: AppColors.primaryGold,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.3,
         ),
       ),
     );
   }
 
-  Widget _buildSubtitle(String text) {
+  Widget _sub(BuildContext context, String text) {
     return Padding(
-      padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+      padding: const EdgeInsets.only(top: 8, bottom: 4),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          color: context.colors.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 
-  Widget _buildPolicyText(String text) {
-    return Text(text, style: const TextStyle(fontSize: 15, height: 1.5));
+  Widget _body(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: context.colors.textSecondary,
+          fontSize: 14,
+          height: 1.6,
+        ),
+      ),
+    );
   }
 
-  Widget _buildBulletPoint(String text) {
+  Widget _bullet(BuildContext context, String text) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, top: 4.0),
+      padding: const EdgeInsets.only(left: 12, bottom: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const Text('• ', style: TextStyle(fontSize: 15, height: 1.5)),
+        children: [
+          const Text(
+            '• ',
+            style: TextStyle(color: AppColors.primaryGold, fontSize: 14),
+          ),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 15, height: 1.5),
+              style: TextStyle(
+                color: context.colors.textSecondary,
+                fontSize: 14,
+                height: 1.5,
+              ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 12.0),
-      child: Divider(),
     );
   }
 }

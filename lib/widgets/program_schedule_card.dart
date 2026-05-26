@@ -1,5 +1,8 @@
+// lib/widgets/program_schedule_card.dart
+
 import 'package:flutter/material.dart';
 
+import '../constants/app_constants.dart';
 import '../core/theme/app_colors.dart';
 import '../models/program.dart';
 import '../screens/program_details_screen.dart';
@@ -14,142 +17,191 @@ class ProgramScheduleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isCurrent = program.isCurrentlyPlaying();
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ProgramDetailsScreen(
-              program: program,
-            ),
+            builder: (_) => ProgramDetailsScreen(program: program),
           ),
         );
       },
 
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-
+        duration: const Duration(milliseconds: 350),
         margin: const EdgeInsets.only(bottom: 16),
-
-        padding: const EdgeInsets.all(18),
-
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.card,
-              AppColors.surface,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          // ACTIVE BACKGROUND
+          color: isCurrent
+              ? AppColors.primaryGold.withValues(alpha: 0.10)
+              : colors.card,
 
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(20),
 
           border: Border.all(
-            color: AppColors.primaryGold.withOpacity(0.08),
+            color: isCurrent
+                ? AppColors.primaryGold
+                : AppColors.primaryGold.withValues(alpha: 0.08),
+            width: isCurrent ? 2 : 1,
           ),
 
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.18),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          // GLOW EFFECT
+          boxShadow: isCurrent
+              ? [
+                  BoxShadow(
+                    color: AppColors.primaryGold.withValues(alpha: 0.15),
+                    blurRadius: 18,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : [],
         ),
 
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // TIME
+            // TIME COLUMN
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
+                horizontal: 12,
+                vertical: 10,
               ),
-
               decoration: BoxDecoration(
-                color: AppColors.primaryGold.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(18),
+                color: isCurrent
+                    ? AppColors.primaryGold
+                    : AppColors.primaryGold.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
               ),
-
-              child: Text(
-                program.time,
-                style: const TextStyle(
-                  color: AppColors.primaryGold,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    program.startTime,
+                    style: TextStyle(
+                      color: isCurrent ? Colors.black : AppColors.primaryGold,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    program.endTime,
+                    style: TextStyle(
+                      color: isCurrent ? Colors.black87 : colors.textMuted,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(width: 18),
+            const SizedBox(width: 16),
 
-            // CONTENT
+            // DETAILS
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  // TITLE
+                  Text(
+                    program.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // HOST
+                  Text(
+                    program.host,
+                    style: TextStyle(
+                      color: colors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // BADGES
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
                     children: [
-                      Expanded(
+                      // CATEGORY
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.accentBrown
+                              : colors.cardBorder,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: Text(
-                          program.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          program.category,
                           style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            color: AppColors.softGold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
 
+                      // LIVE
                       if (program.isLive)
                         Container(
-                          margin: const EdgeInsets.only(left: 10),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 6,
                           ),
-
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(14),
+                            color: Colors.red.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-
                           child: const Text(
-                            'LIVE',
+                            AppConstants.liveLabel,
                             style: TextStyle(
                               color: Colors.red,
-                              fontWeight: FontWeight.bold,
                               fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+
+                      // NOW AIRING
+                      if (isCurrent)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryGold,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text(
+                            AppConstants.nowAiringLabel,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                     ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    program.host,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 15,
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  Text(
-                    program.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 14,
-                      height: 1.6,
-                    ),
                   ),
                 ],
               ),
@@ -158,10 +210,10 @@ class ProgramScheduleCard extends StatelessWidget {
             const SizedBox(width: 10),
 
             // ARROW
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios_rounded,
-              color: AppColors.textMuted,
-              size: 18,
+              color: isCurrent ? AppColors.primaryGold : colors.textMuted,
+              size: 16,
             ),
           ],
         ),

@@ -52,8 +52,8 @@ firebase.json
 .dart_tool
 .idea
 
-.properties
-.pro 
-
-.json 
+# Android signing — never commit these
+android/key.properties
+*.keystore
+*.jks
 

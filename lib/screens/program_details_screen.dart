@@ -13,11 +13,12 @@ class ProgramDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
 
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         elevation: 0,
       ),
 
@@ -36,7 +37,7 @@ class ProgramDetailsScreen extends StatelessWidget {
                 ),
 
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGold.withOpacity(0.15),
+                  color: AppColors.primaryGold.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(18),
                 ),
 
@@ -55,8 +56,8 @@ class ProgramDetailsScreen extends StatelessWidget {
               // TITLE
               Text(
                 program.title,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: colors.textPrimary,
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
                   height: 1.2,
@@ -79,8 +80,8 @@ class ProgramDetailsScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       program.host,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: colors.textSecondary,
                         fontSize: 17,
                         fontWeight: FontWeight.w500,
                       ),
@@ -100,7 +101,7 @@ class ProgramDetailsScreen extends StatelessWidget {
                   ),
 
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.15),
+                    color: Colors.red.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                   ),
 
@@ -121,7 +122,7 @@ class ProgramDetailsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
 
                 decoration: BoxDecoration(
-                  color: AppColors.card,
+                  color: colors.card,
                   borderRadius: BorderRadius.circular(28),
                 ),
 
@@ -142,8 +143,8 @@ class ProgramDetailsScreen extends StatelessWidget {
 
                     Text(
                       program.description,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 17,
                         height: 1.8,
                       ),

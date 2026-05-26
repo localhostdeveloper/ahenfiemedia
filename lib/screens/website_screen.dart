@@ -1,8 +1,6 @@
-// lib/screens/website_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:lottie/lottie.dart'; // 🌟 NEW: Import the Lottie package 🌟
+import 'package:lottie/lottie.dart';
 import '../constants/app_constants.dart';
 
 class WebsiteScreen extends StatefulWidget {
@@ -13,9 +11,8 @@ class WebsiteScreen extends StatefulWidget {
 }
 
 class _WebsiteScreenState extends State<WebsiteScreen> {
-  // Check if the URL is the placeholder we defined in AppConstants
   final bool _isPlaceholder =
-      AppConstants.websiteUrl == "https://placeholder.com";
+      AppConstants.websiteUrl == 'https://placeholder.com';
 
   late final WebViewController _controller;
   double _loadingProgress = 0.0;
@@ -24,7 +21,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
   @override
   void initState() {
     super.initState();
-    // Only initialize the WebView if we have a real URL
     if (!_isPlaceholder) {
       _initializeWebView();
     }
@@ -37,54 +33,36 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (int progress) {
-            if (mounted) {
-              setState(() {
-                _loadingProgress = progress / 100;
-              });
-            }
+            if (mounted) setState(() => _loadingProgress = progress / 100);
           },
-          onPageStarted: (String url) {
-            if (mounted) {
-              setState(() {
-                _errorMessage = null; // Clear previous errors
-              });
-            }
+          onPageStarted: (_) {
+            if (mounted) setState(() => _errorMessage = null);
           },
-          onPageFinished: (String url) {
-            if (mounted) {
-              setState(() {
-                _loadingProgress = 1.0; // Mark as complete
-              });
-            }
+          onPageFinished: (_) {
+            if (mounted) setState(() => _loadingProgress = 1.0);
           },
           onWebResourceError: (WebResourceError error) {
             if (mounted) {
               setState(() {
                 _errorMessage =
                     'Could not load the website: ${error.description}';
-                _loadingProgress = 1.0; // Stop loading indicator
+                _loadingProgress = 1.0;
               });
-              debugPrint('Web resource error: ${error.description}');
             }
           },
-          onNavigationRequest: (NavigationRequest request) {
-            // For now, allow all navigation
-            return NavigationDecision.navigate;
-          },
+          onNavigationRequest: (_) => NavigationDecision.navigate,
         ),
       )
       ..loadRequest(Uri.parse(AppConstants.websiteUrl));
   }
 
-  // 🌟 NEW: Widget for the placeholder screen 🌟
-  Widget _buildPlaceholderScreen(BuildContext context) {
+  Widget _buildPlaceholder(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 🌟 Use the Lottie animation path provided by the user 🌟
             Lottie.asset(
               'assets/animations/nodata.json',
               width: 250,
@@ -94,9 +72,10 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             const SizedBox(height: 32),
             Text(
               'Website Coming Soon!',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -115,16 +94,12 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
     return Scaffold(
       body: SafeArea(
         child: _isPlaceholder
-            ? _buildPlaceholderScreen(
-                context,
-              ) // 🌟 Show placeholder if URL is dummy 🌟
+            ? _buildPlaceholder(context)
             : Stack(
                 children: [
-                  // 1. WebView Widget
                   if (_errorMessage == null)
                     WebViewWidget(controller: _controller),
 
-                  // 2. Loading Indicator
                   if (_loadingProgress < 1.0)
                     LinearProgressIndicator(
                       value: _loadingProgress,
@@ -134,7 +109,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                       ),
                     ),
 
-                  // 3. Error Overlay (Web View failed)
                   if (_errorMessage != null)
                     Center(
                       child: Padding(

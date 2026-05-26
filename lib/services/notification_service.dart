@@ -12,7 +12,7 @@ import '../models/app_notification.dart';
 // --- Global Background Handler ---
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("Handling a background message: ${message.messageId}");
+  debugPrint("Handling a background message: ${message.messageId}");
 }
 
 class NotificationService {
@@ -69,13 +69,13 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted notification permissions');
+      debugPrint('User granted notification permissions');
     }
   }
 
   Future<String?> _getFCMToken() async {
     String? token = await _firebaseMessaging.getToken();
-    print("FCM Registration Token: $token");
+    debugPrint("FCM Registration Token: $token");
     return token;
   }
 
@@ -122,7 +122,7 @@ class NotificationService {
 
     // 4. Token Refresh
     _firebaseMessaging.onTokenRefresh.listen((String newToken) {
-      print('FCM Token Refreshed: $newToken');
+      debugPrint('FCM Token Refreshed: $newToken');
     });
   }
 
@@ -161,7 +161,7 @@ class NotificationService {
     try {
       await _firebaseMessaging.subscribeToTopic(topic);
     } catch (e) {
-      print('Error subscribing: $e');
+      debugPrint('Error subscribing: $e');
     }
   }
 
@@ -169,7 +169,7 @@ class NotificationService {
     try {
       await _firebaseMessaging.unsubscribeFromTopic(topic);
     } catch (e) {
-      print('Error unsubscribing: $e');
+      debugPrint('Error unsubscribing: $e');
     }
   }
 }

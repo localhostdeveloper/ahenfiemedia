@@ -53,7 +53,7 @@ class AppInfoSection extends StatelessWidget {
       }
     } catch (e) {
       success = false;
-      print('Error clearing preferences cache: $e');
+      debugPrint('Error clearing preferences cache: $e');
     }
 
     // 2. Clear Temporary File Cache
@@ -65,7 +65,7 @@ class AppInfoSection extends StatelessWidget {
       }
     } catch (e) {
       success = false;
-      print('Error clearing file cache: $e');
+      debugPrint('Error clearing file cache: $e');
     }
 
     // 3. Final Confirmation Dialog UI

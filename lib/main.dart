@@ -1,5 +1,5 @@
-import 'package:ahenfie_media/screens/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'screens/splash_screen.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,7 +7,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'constants/app_constants.dart';
-// import 'constants/app_theme.dart';
 
 import 'core/theme/app_theme.dart';
 
@@ -64,7 +63,7 @@ class AhenfieMedia extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }

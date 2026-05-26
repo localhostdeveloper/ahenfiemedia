@@ -1,16 +1,16 @@
 // lib/providers/radio_player_provider.dart
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
-import 'package:http/http.dart' as http; // For API calls
-import 'dart:convert'; // For JSON parsing
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../constants/app_constants.dart';
 
 enum RadioPlayerState { stopped, playing, paused, loading, error }
 
-// Your existing RadioPlayerNotifier (unchanged)
 class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
   late final AudioPlayer _player;
   final String _streamUrl = AppConstants.radioStreamUrl;
@@ -39,10 +39,6 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
       final processingState = playerState.processingState;
       final playing = playerState.playing;
 
-     // print("Player State: $playerState");
-      //print("Processing: $processingState");
-     // print("Playing: $playing");
-
       if (processingState == ProcessingState.loading ||
           processingState == ProcessingState.buffering) {
         state = RadioPlayerState.loading;
@@ -64,11 +60,8 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
     });
 
     _player.playbackEventStream.listen(
-      (event) {
-      //  print("Playback Event: ${event.processingState}");
-      },
+      (event) {},
       onError: (error) {
-       // print("Playback Error: $error");
         _currentErrorMessage = error.toString();
         state = RadioPlayerState.error;
       },
@@ -78,15 +71,12 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
   Future<void> play() async {
     if (state == RadioPlayerState.playing) return;
 
-   // print("Attempting to play from URL: $_streamUrl");
     state = RadioPlayerState.loading;
     _currentErrorMessage = null;
 
     try {
-      // Stop any existing playback first
       await _player.stop();
 
-      // Create MediaItem for background playback
       final mediaItem = MediaItem(
         id: 'ahenfie_radio_stream',
         album: AppConstants.radioName,
@@ -94,40 +84,31 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
         artist: AppConstants.radioMetadataArtist,
         artUri: Uri.parse('assets:///assets/images/ahenfiefm.png'),
         genre: 'Radio',
-        duration: null, // Live stream has no fixed duration
+        duration: null,
       );
 
-      // Configure the player for streaming
       await _player.setAudioSource(
         AudioSource.uri(Uri.parse(_streamUrl), tag: mediaItem),
       );
 
-      // Start playback with error handling
       await _player.play();
-
-     // print("Playback started successfully");
     } catch (e, stackTrace) {
-      //print("Play error: $e");
-      print("Stack trace: $stackTrace");
+      debugPrint('Stack trace: $stackTrace');
       _currentErrorMessage = e.toString();
       state = RadioPlayerState.error;
 
-      // Attempt fallback: try without just_audio_background initially
       await _tryFallbackStream();
     }
   }
 
   Future<void> _tryFallbackStream() async {
     try {
-     // print("Attempting fallback stream approach...");
-
-      // Create a simple MediaItem for fallback
       final mediaItem = MediaItem(
         id: 'ahenfie_fallback',
         album: 'Ahenfie FM',
         title: 'Live Radio',
         artist: 'Ahenfie FM',
-        artUri: Uri.parse('assets/images/noti.png')
+        artUri: Uri.parse('assets/images/noti.png'),
       );
 
       await _player.setAudioSource(
@@ -141,19 +122,13 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
       await _player.play();
       state = RadioPlayerState.playing;
       _currentErrorMessage = null;
-     // print("Fallback approach succeeded!");
     } catch (e) {
-     // print("Fallback approach failed: $e");
-      // Try with minimal MediaItem
       await _tryMinimalStream();
     }
   }
 
   Future<void> _tryMinimalStream() async {
     try {
-     // print("Attempting minimal stream configuration...");
-
-      // Create minimal MediaItem
       final mediaItem = MediaItem(id: 'radio_stream', title: 'Ahenfie FM');
 
       await _player.stop();
@@ -166,9 +141,7 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
       await _player.play();
       state = RadioPlayerState.playing;
       _currentErrorMessage = null;
-     // print("Minimal configuration succeeded!");
     } catch (e) {
-     // print("All playback attempts failed: $e");
       _currentErrorMessage =
           "Cannot connect to radio stream. Please try again later.";
     }
@@ -195,7 +168,6 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
   }
 
   Future<void> retry() async {
- //   print("Retrying connection...");
     await play();
   }
 
@@ -223,7 +195,7 @@ final radioPlayerErrorMessageProvider = Provider<String?>((ref) {
 // Provider for volume control
 final radioVolumeProvider = StateProvider<double>((ref) => 1.0);
 
-// NEW: Now Playing from API
+// Now Playing from API
 class NowPlayingNotifier extends Notifier<NowPlayingData> {
   Timer? _timer;
   final String _apiUrl = AppConstants.radioNowPlayingApiUrl;
@@ -231,7 +203,7 @@ class NowPlayingNotifier extends Notifier<NowPlayingData> {
   @override
   NowPlayingData build() {
     _startPolling();
-    return NowPlayingData.empty(); // Initial empty state
+    return NowPlayingData.empty();
   }
 
   void _startPolling() {
@@ -239,7 +211,7 @@ class NowPlayingNotifier extends Notifier<NowPlayingData> {
       const Duration(seconds: 15),
       (_) => _fetchNowPlaying(),
     );
-    _fetchNowPlaying(); // Fetch immediately
+    _fetchNowPlaying();
   }
 
   Future<void> _fetchNowPlaying() async {
@@ -271,14 +243,12 @@ class NowPlayingNotifier extends Notifier<NowPlayingData> {
         state = NowPlayingData.error('API unavailable');
       }
     } catch (e) {
-    //  print('API fetch error: $e');
       state = NowPlayingData.error('Connection issue');
     }
   }
 
   void dispose() {
     _timer?.cancel();
-    //super.dispose();
   }
 }
 

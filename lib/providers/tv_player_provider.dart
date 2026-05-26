@@ -1,9 +1,18 @@
+// lib/providers/tv_player_provider.dart
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:video_player/video_player.dart';
+
 import 'package:chewie/chewie.dart';
 
 import '../constants/app_constants.dart';
+
 import '../core/theme/app_colors.dart';
+
+import '../services/network_service.dart';
+
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 enum TVPlayerState {
   loading,
@@ -12,9 +21,11 @@ enum TVPlayerState {
 }
 
 class TVPlayerData {
+
   final TVPlayerState state;
 
-  final ChewieController? chewieController;
+  final ChewieController?
+      chewieController;
 
   final String? errorMessage;
 
@@ -26,17 +37,21 @@ class TVPlayerData {
 
   TVPlayerData copyWith({
     TVPlayerState? state,
-    ChewieController? chewieController,
+    ChewieController?
+        chewieController,
     String? errorMessage,
   }) {
+
     return TVPlayerData(
-      state: state ?? this.state,
+      state:
+          state ?? this.state,
+
       chewieController:
           chewieController ??
           this.chewieController,
+
       errorMessage:
-          errorMessage ??
-          this.errorMessage,
+          errorMessage,
     );
   }
 }
@@ -44,12 +59,17 @@ class TVPlayerData {
 class TVPlayerNotifier
     extends Notifier<TVPlayerData> {
 
-  VideoPlayerController? _videoController;
+  VideoPlayerController?
+      _videoController;
 
-  ChewieController? _chewieController;
+  ChewieController?
+      _chewieController;
+
+  bool _isInitializing = false;
 
   @override
   TVPlayerData build() {
+
     _initializePlayer();
 
     ref.onDispose(() {
@@ -57,30 +77,73 @@ class TVPlayerNotifier
     });
 
     return const TVPlayerData(
-      state: TVPlayerState.loading,
+      state:
+          TVPlayerState.loading,
     );
   }
 
-  Future<void> _initializePlayer() async {
+  Future<void>
+      _initializePlayer() async {
+
+    if (_isInitializing) {
+      return;
+    }
+
+    _isInitializing = true;
+
     try {
-      // =====================
-      // VIDEO PLAYER
-      // =====================
+
+      final hasInternet =
+          await NetworkService
+              .hasInternet();
+
+      if (!hasInternet) {
+
+        state = state.copyWith(
+          state:
+              TVPlayerState.error,
+
+          errorMessage:
+              'No internet connection.',
+        );
+
+        await WakelockPlus.disable();
+
+        _isInitializing = false;
+
+        return;
+      }
+
+      await _disposePlayer();
 
       _videoController =
-          VideoPlayerController.networkUrl(
+          VideoPlayerController
+              .networkUrl(
+
         Uri.parse(
-          AppConstants.tvStreamUrl,
+          AppConstants
+              .tvStreamUrl,
+        ),
+
+        httpHeaders: const {
+          'User-Agent':
+              'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Accept': '*/*',
+          'Connection': 'keep-alive',
+        },
+
+        videoPlayerOptions:
+            VideoPlayerOptions(
+          mixWithOthers: false,
         ),
       );
 
-      await _videoController!.initialize();
+      await _videoController!
+          .initialize();
 
-      // =====================
-      // CHEWIE
-      // =====================
+      _chewieController =
+          ChewieController(
 
-      _chewieController = ChewieController(
         videoPlayerController:
             _videoController!,
 
@@ -92,78 +155,126 @@ class TVPlayerNotifier
 
         allowMuting: true,
 
-        allowPlaybackSpeedChanging: false,
+        allowPlaybackSpeedChanging:
+            false,
 
         showControls: true,
 
-        fullScreenByDefault: false,
+        fullScreenByDefault:
+            false,
 
         autoInitialize: true,
 
         materialProgressColors:
             ChewieProgressColors(
+
           playedColor:
-              AppColors.primaryGold,
+              AppColors
+                  .primaryGold,
 
           handleColor:
-              AppColors.primaryGold,
+              AppColors
+                  .primaryGold,
 
           backgroundColor:
-              AppColors.accentBrown,
+              AppColors
+                  .accentBrown,
 
           bufferedColor:
-              AppColors.primaryGold
-                  .withOpacity(0.35),
+              AppColors
+                  .primaryGold
+                  .withValues(alpha: 0.35),
         ),
       );
 
-      // =====================
-      // SUCCESS
-      // =====================
-
       state = state.copyWith(
-        state: TVPlayerState.playing,
+        state:
+            TVPlayerState.playing,
 
         chewieController:
             _chewieController,
 
         errorMessage: null,
       );
-    } catch (e) {
 
-      // =====================
-      // ERROR
-      // =====================
+      await WakelockPlus.enable();
+
+    } catch (_) {
 
       state = state.copyWith(
-        state: TVPlayerState.error,
+        state:
+            TVPlayerState.error,
 
         errorMessage:
-            'Failed to load TV stream.',
+            'Unable to load TV stream.',
       );
+
+      await WakelockPlus.disable();
+
+    } finally {
+
+      _isInitializing = false;
     }
   }
 
   Future<void> retry() async {
+
     state = state.copyWith(
-      state: TVPlayerState.loading,
+      state:
+          TVPlayerState.loading,
+
       errorMessage: null,
     );
-
-    await _disposePlayer();
 
     await _initializePlayer();
   }
 
-  Future<void> _disposePlayer() async {
+  Future<void> pause() async {
+    await _videoController?.pause();
+    await WakelockPlus.disable();
+  }
 
-    _chewieController?.dispose();
+  Future<void> resume() async {
+    if (_videoController != null) {
+      await _videoController!.play();
+      await WakelockPlus.enable();
+    } else if (!_isInitializing) {
+      state = const TVPlayerData(state: TVPlayerState.loading);
+      await _initializePlayer();
+    }
+  }
 
-    await _videoController?.dispose();
+  // =========================
+  // DESTROY PLAYER (on logout/exit PIP)
+  // =========================
+
+  Future<void> destroy() async {
+
+    await _disposePlayer();
+
+    state = const TVPlayerData(
+      state: TVPlayerState.loading,
+    );
+  }
+
+  Future<void>
+      _disposePlayer() async {
+
+    final chewie =
+        _chewieController;
+
+    final video =
+        _videoController;
 
     _chewieController = null;
 
     _videoController = null;
+
+    chewie?.dispose();
+
+    await video?.dispose();
+
+    await WakelockPlus.disable();
   }
 }
 

@@ -1,74 +1,112 @@
-// lib/widgets/exit_confirmation_sheet.dart
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../constants/app_theme.dart';
 
-/// A modal bottom sheet widget for confirming app exit.
+import '../constants/app_constants.dart';
+import '../core/theme/app_colors.dart';
+
 class ExitConfirmationSheet extends StatelessWidget {
   const ExitConfirmationSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return PopScope(
-      canPop: false, // Prevents dismissal via system back button.
+      canPop: false,
       child: SafeArea(
-        // Ensures content respects system bars
         child: Container(
-          // Use a slightly softer background color for contrast against white scaffold
           decoration: BoxDecoration(
-            color: AppColors.pureWhite,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(16.0),
-            ),
+            color: colors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // Essential to keep the sheet small
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // --- Title ---
-              const Text(
-                'Exit Application?',
-                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colors.textMuted.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              const SizedBox(height: 8.0),
+              const SizedBox(height: 20),
 
-              // --- Content ---
+              // Icon
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.power_settings_new_rounded,
+                  color: AppColors.error,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 16),
+
               Text(
-                'Are you sure you want to exit the app?',
-                style: TextStyle(color: AppColors.textSecondary),
+                AppConstants.exitTitle,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              const SizedBox(height: 24.0),
+              const SizedBox(height: 8),
+              Text(
+                AppConstants.exitSubtitle,
+                style: TextStyle(
+                  color: colors.textSecondary,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
 
-              // --- Actions ---
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  // --- CANCEL BUTTON (NO) ---
-                  TextButton(
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pop(false), // Returns false (Do not exit)
-                    child: Text(
-                      'No',
-                      style: TextStyle(color: AppColors.primaryBlack),
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colors.textSecondary,
+                        side: BorderSide(color: colors.cardBorder),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        AppConstants.cancelLabel,
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16.0),
-                  // --- EXIT BUTTON (YES) ---
-                  ElevatedButton(
-                    onPressed: () {
-                      SystemNavigator.pop();
-                      Navigator.of(
-                        context,
-                      ).pop(true); // Close sheet and handle exit
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brandGold,
-                      foregroundColor: AppColors.primaryBlack,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGold,
+                        foregroundColor: Colors.black,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        AppConstants.exitConfirmLabel,
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
                     ),
-                    child: const Text('Yes, Exit'),
                   ),
                 ],
               ),

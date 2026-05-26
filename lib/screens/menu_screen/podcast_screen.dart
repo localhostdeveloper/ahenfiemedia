@@ -1,43 +1,86 @@
-// lib/screens/menu_screen/podcast_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+
+import '../../core/theme/app_colors.dart';
 
 class PodcastScreen extends StatelessWidget {
   const PodcastScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      appBar: AppBar(title: const Text('Ahenfie Podcasts')),
+      backgroundColor: colors.background,
+      appBar: AppBar(
+        title: const Text('Podcasts'),
+        backgroundColor: colors.background,
+      ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment:
-                CrossAxisAlignment.center, // Ensure horizontal centering
             children: [
-              // 🌟 Lottie animation placeholder 🌟
               Lottie.asset(
                 'assets/animations/podcast.json',
-                width: 250,
-                height: 250,
+                width: 220,
+                height: 220,
                 fit: BoxFit.contain,
               ),
-              const SizedBox(height: 32),
-              Text(
-                'Podcast Library Coming Soon!',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 24),
               const Text(
-                'We are curating the best Ahenfie audio content for you. Check back for your favorite shows.',
+                'PODCAST LIBRARY',
+                style: TextStyle(
+                  color: AppColors.primaryGold,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Coming Soon',
+                style: TextStyle(
+                  color: colors.textMuted,
+                  fontSize: 13,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'We are curating the best Ahenfie audio content for you. Check back for your favourite shows and exclusive interviews.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: TextStyle(
+                  color: colors.textSecondary,
+                  fontSize: 14,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGold.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.primaryGold.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.mic_rounded, color: AppColors.primaryGold, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Ahenfie Podcasts',
+                      style: TextStyle(
+                        color: AppColors.primaryGold,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

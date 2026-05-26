@@ -132,7 +132,7 @@ class SocialMediaScreen extends StatelessWidget {
           ),
           subtitle: Text(
             link.url.replaceAll('https://', '').split('/').first,
-            style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 14),
+            style: TextStyle(color: textColor.withValues(alpha: 0.8), fontSize: 14),
           ),
           trailing: Icon(Icons.chevron_right, color: textColor),
           contentPadding: const EdgeInsets.symmetric(

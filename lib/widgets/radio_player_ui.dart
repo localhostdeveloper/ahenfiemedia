@@ -93,7 +93,7 @@ class _RadioPlayerUIState extends ConsumerState<RadioPlayerUI>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 3),
                           ),
@@ -115,7 +115,7 @@ class _RadioPlayerUIState extends ConsumerState<RadioPlayerUI>
                               ),
                             );
                           },
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (_, _, _) => Container(
                             color: Colors.grey[200],
                             child: const Icon(
                               Icons.radio,
