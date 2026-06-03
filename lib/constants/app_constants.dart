@@ -18,6 +18,11 @@ class AppConstants {
   static const String radioFrequencyShort  = '106.1 MHz FM';
   static const String fullStationName      = 'AHENFIE 106.1 FM';
 
+  // ── Podcast ───────────────────────────────────────────────────────────────
+  static const String podcastRssUrl         = 'https://anchor.fm/s/1133e029c/podcast/rss';
+  static const String podcastShowTitle      = 'Anopa Ahenfie';
+  static const String podcastHost           = 'Nana Kwadwo Jantuah, PhD';
+
   // ── Radio Stream ──────────────────────────────────────────────────────────
   static const String radioStreamUrl        = 'https://radio.localstreamgh.com/listen/ahenfie_radio_/radio.mp3';
   static const String radioLogoUrl          = 'assets/images/ahenfiefm.png';
@@ -121,20 +126,29 @@ class AppConstants {
   static const String contactSubtitle     = "We'd love to hear from you";
   static const String contactDetailsLabel = 'CONTACT DETAILS';
   static const String studioHoursLabel    = 'STUDIO HOURS';
+  static const String locationLabel       = 'LOCATION';
   static const String feedbackLabel       = 'FEEDBACK';
   static const String copiedToClipboard   = 'Copied to clipboard';
-  static const String supportEmail        = 'support@ahenfiemedia.com';
+  static const String supportEmail        = 'ahenfiemedia466@gmail.com';
+  static const String studioPhone1        = '+233 557 101 231';
+  static const String studioPhone1E164    = '+233557101231';
+  static const String studioPhone2        = '+233 557 101 232';
+  static const String studioPhone2E164    = '+233557101232';
   static const String studioLocation      = 'Kumasi, Ashanti Region, Ghana';
   static const String studioFrequency     = '106.1 MHz FM';
-  static const String studioHours1Days    = 'Monday – Friday';
-  static const String studioHours1Time    = '6:00 AM – 10:00 PM';
+  static const String studioHours1Days    = 'Monday - Friday';
+  static const String studioHours1Time    = '6:00 AM - 10:00 PM';
   static const String studioHours2Days    = 'Saturday';
-  static const String studioHours2Time    = '7:00 AM – 9:00 PM';
+  static const String studioHours2Time    = '7:00 AM - 9:00 PM';
   static const String studioHours3Days    = 'Sunday';
-  static const String studioHours3Time    = '8:00 AM – 6:00 PM';
+  static const String studioHours3Time    = '8:00 AM - 6:00 PM';
   static const String feedbackText        =
       "Have a request, programme feedback, or want to advertise? "
-      "Send us an email at support@ahenfiemedia.com and we'll respond within 24 hours.";
+      "Send us an email at ahenfiemedia466@gmail.com and we'll respond within 24 hours.";
+  static const String mapEmbedUrl         =
+      'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d475.6757172285195'
+      '!2d-1.6215717699100125!3d6.690532437593291!2m3!1f0!2f0!3f0!3m2!1i1024'
+      '!2i768!4f13.1!5e1!3m2!1sen!2sgh!4v1780514790805!5m2!1sen!2sgh';
 
   // ── About ─────────────────────────────────────────────────────────────────
   static const String aboutWhoWeAreLabel    = 'Who We Are';
