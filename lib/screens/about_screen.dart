@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../constants/app_constants.dart';
+import '../constants/env.dart';
 import '../core/theme/app_colors.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -253,7 +254,7 @@ class _AboutScreenState extends State<AboutScreen> {
                             ),
                             _InfoRow(
                               label: AppConstants.contactLabel,
-                              value: AppConstants.supportEmail,
+                              value: Env.supportEmail,
                             ),
                           ],
                         ),

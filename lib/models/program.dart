@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class Program {
@@ -71,43 +70,20 @@ class Program {
   }
 
   // =========================
-  // FIRESTORE FACTORY
+  // SUPABASE FACTORY
   // =========================
 
-  factory Program.fromFirestore(
-    DocumentSnapshot doc,
-  ) {
-
-    final data =
-        doc.data()
-            as Map<String, dynamic>? ??
-        {};
-
-    return Program(
-      day: '',
-
-      startTime:
-          data['time'] ?? '',
-
-      endTime: '',
-
-      title:
-          data['title'] ?? '',
-
-      host:
-          data['host'] ?? '',
-
-      description:
-          data['description'] ?? '',
-
-      category: '',
-
-      isLive:
-          data['isLive'] ?? false,
-
-      thumbnail: '',
-    );
-  }
+  factory Program.fromSupabase(Map<String, dynamic> data) => Program(
+        day: data['days'] ?? data['day'] ?? '',
+        startTime: data['start_time'] ?? '',
+        endTime: data['end_time'] ?? '',
+        title: data['title'] ?? '',
+        host: data['host'] ?? '',
+        description: data['description'] ?? '',
+        category: data['category'] ?? '',
+        isLive: data['is_live'] == true,
+        thumbnail: data['thumbnail'] ?? '',
+      );
 
   // =========================
   // LEGACY SUPPORT

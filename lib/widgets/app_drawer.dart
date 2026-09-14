@@ -19,6 +19,7 @@ const _tabItems = <int, _DrawerItem>{
 };
 
 const _pushLabels = [
+  AppConstants.presentersLabel,
   AppConstants.podcastsLabel,
   AppConstants.videosLabel,
   AppConstants.newsLabel,
@@ -30,6 +31,7 @@ const _pushLabels = [
 ];
 
 const _pushIcons = <IconData>[
+  Icons.people_rounded,
   Icons.mic_rounded,
   Icons.play_circle_rounded,
   Icons.article_rounded,

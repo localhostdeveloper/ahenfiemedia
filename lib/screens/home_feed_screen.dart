@@ -425,7 +425,7 @@ class _SocialTeaser extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () => onPushSelect(AppConstants.youtubeLabel),
+              onPressed: () => onPushSelect(AppConstants.socialMediaLabel),
               child: const Text(
                 AppConstants.viewAllLabel,
                 style: TextStyle(
@@ -588,7 +588,7 @@ class _FollowUsBanner extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           GestureDetector(
-            onTap: () => onPushSelect(AppConstants.youtubeLabel),
+            onTap: () => onPushSelect(AppConstants.socialMediaLabel),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(

@@ -1,17 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lottie/lottie.dart';
 
 import '../../constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/podcast_episode.dart';
 import '../../providers/podcast_provider.dart';
 
-class PodcastScreen extends ConsumerWidget {
+enum _SortOrder { latest, oldest, titleAZ, titleZA, shortest, longest }
+
+extension _SortLabel on _SortOrder {
+  String get label => switch (this) {
+        _SortOrder.latest   => 'Latest First',
+        _SortOrder.oldest   => 'Oldest First',
+        _SortOrder.titleAZ  => 'Title A–Z',
+        _SortOrder.titleZA  => 'Title Z–A',
+        _SortOrder.shortest => 'Shortest First',
+        _SortOrder.longest  => 'Longest First',
+      };
+
+  IconData get icon => switch (this) {
+        _SortOrder.latest   => Icons.arrow_downward_rounded,
+        _SortOrder.oldest   => Icons.arrow_upward_rounded,
+        _SortOrder.titleAZ  => Icons.sort_by_alpha_rounded,
+        _SortOrder.titleZA  => Icons.sort_by_alpha_rounded,
+        _SortOrder.shortest => Icons.timer_outlined,
+        _SortOrder.longest  => Icons.timer_rounded,
+      };
+}
+
+List<PodcastEpisode> _sorted(List<PodcastEpisode> src, _SortOrder order) {
+  final list = [...src];
+  switch (order) {
+    case _SortOrder.latest:
+      list.sort((a, b) => (b.pubDate ?? DateTime(0))
+          .compareTo(a.pubDate ?? DateTime(0)));
+    case _SortOrder.oldest:
+      list.sort((a, b) => (a.pubDate ?? DateTime(0))
+          .compareTo(b.pubDate ?? DateTime(0)));
+    case _SortOrder.titleAZ:
+      list.sort((a, b) => a.title.compareTo(b.title));
+    case _SortOrder.titleZA:
+      list.sort((a, b) => b.title.compareTo(a.title));
+    case _SortOrder.shortest:
+      list.sort((a, b) =>
+          (a.duration ?? Duration.zero).compareTo(b.duration ?? Duration.zero));
+    case _SortOrder.longest:
+      list.sort((a, b) =>
+          (b.duration ?? Duration.zero).compareTo(a.duration ?? Duration.zero));
+  }
+  return list;
+}
+
+class PodcastScreen extends ConsumerStatefulWidget {
   const PodcastScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PodcastScreen> createState() => _PodcastScreenState();
+}
+
+class _PodcastScreenState extends ConsumerState<PodcastScreen> {
+  _SortOrder _sortOrder = _SortOrder.latest;
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.colors;
     final episodesAsync = ref.watch(podcastEpisodesProvider);
     final playerState = ref.watch(podcastPlayerProvider);
@@ -22,6 +73,46 @@ class PodcastScreen extends ConsumerWidget {
         title: const Text('Podcasts'),
         backgroundColor: colors.background,
         actions: [
+          // Sort menu
+          PopupMenuButton<_SortOrder>(
+            icon: Icon(Icons.sort_rounded, color: colors.textMuted),
+            tooltip: 'Sort',
+            color: colors.surface,
+            onSelected: (order) => setState(() => _sortOrder = order),
+            itemBuilder: (_) => _SortOrder.values.map((o) {
+              final selected = o == _sortOrder;
+              return PopupMenuItem(
+                value: o,
+                child: Row(
+                  children: [
+                    Icon(o.icon,
+                        size: 18,
+                        color: selected
+                            ? AppColors.primaryGold
+                            : colors.textMuted),
+                    const SizedBox(width: 10),
+                    Text(
+                      o.label,
+                      style: TextStyle(
+                        color: selected
+                            ? AppColors.primaryGold
+                            : colors.textPrimary,
+                        fontWeight: selected
+                            ? FontWeight.w700
+                            : FontWeight.w400,
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (selected) ...[
+                      const Spacer(),
+                      const Icon(Icons.check_rounded,
+                          size: 16, color: AppColors.primaryGold),
+                    ],
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: colors.textMuted),
             onPressed: () => ref.invalidate(podcastEpisodesProvider),
@@ -37,31 +128,33 @@ class PodcastScreen extends ConsumerWidget {
               error: (_, _) => _ErrorView(
                 onRetry: () => ref.invalidate(podcastEpisodesProvider),
               ),
-              data: (episodes) => episodes.isEmpty
-                  ? const _EmptyView()
-                  : _EpisodeList(
-                      episodes: episodes,
-                      playerState: playerState,
-                      onTap: (ep) {
-                        final notifier =
-                            ref.read(podcastPlayerProvider.notifier);
-                        if (notifier.isCurrentEpisode(ep.guid)) {
-                          if (playerState.status ==
-                              PodcastPlayerStatus.playing) {
-                            notifier.pause();
-                          } else {
-                            notifier.resume();
-                          }
-                        } else {
-                          notifier.playEpisode(ep);
-                        }
-                      },
-                    ),
+              data: (episodes) {
+                if (episodes.isEmpty) return const _EmptyView();
+                final sorted = _sorted(episodes, _sortOrder);
+                return _EpisodeList(
+                  episodes: sorted,
+                  playerState: playerState,
+                  onTap: (ep) {
+                    final notifier =
+                        ref.read(podcastPlayerProvider.notifier);
+                    if (notifier.isCurrentEpisode(ep.guid)) {
+                      if (playerState.status == PodcastPlayerStatus.playing) {
+                        notifier.pause();
+                      } else {
+                        notifier.resume();
+                      }
+                    } else {
+                      notifier.playEpisode(ep);
+                    }
+                  },
+                );
+              },
             ),
           ),
           if (playerState.isActive)
             _MiniPlayer(
-              onClose: () => ref.read(podcastPlayerProvider.notifier).stop(),
+              onClose: () =>
+                  ref.read(podcastPlayerProvider.notifier).stop(),
             ),
         ],
       ),
@@ -466,23 +559,8 @@ class _LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Lottie.asset(
-            'assets/animations/podcast.json',
-            width: 160,
-            height: 160,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Loading episodes...',
-            style: TextStyle(color: colors.textMuted, fontSize: 14),
-          ),
-        ],
-      ),
+    return const Center(
+      child: CircularProgressIndicator(color: AppColors.primaryGold),
     );
   }
 }
@@ -502,8 +580,7 @@ class _EmptyView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Lottie.asset('assets/animations/podcast.json',
-                width: 180, height: 180),
+            Icon(Icons.mic_none_rounded, size: 64, color: AppColors.primaryGold),
             const SizedBox(height: 16),
             Text(
               'No episodes yet',

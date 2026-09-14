@@ -1,4 +1,6 @@
 // lib/constants/app_constants.dart
+// Only static branding, labels, and non-sensitive strings.
+// All URLs, API keys, and credentials live in .env via lib/constants/env.dart
 
 class AppConstants {
   // ── App Branding ──────────────────────────────────────────────────────────
@@ -18,32 +20,17 @@ class AppConstants {
   static const String radioFrequencyShort  = '106.1 MHz FM';
   static const String fullStationName      = 'AHENFIE 106.1 FM';
 
-  // ── Podcast ───────────────────────────────────────────────────────────────
-  static const String podcastRssUrl         = 'https://anchor.fm/s/1133e029c/podcast/rss';
-  static const String podcastShowTitle      = 'Anopa Ahenfie';
-  static const String podcastHost           = 'Nana Kwadwo Jantuah, PhD';
-
-  // ── Radio Stream ──────────────────────────────────────────────────────────
-  static const String radioStreamUrl        = 'https://radio.localstreamgh.com/listen/ahenfie_radio_/radio.mp3';
+  // ── Radio assets / metadata (not sensitive) ───────────────────────────────
   static const String radioLogoUrl          = 'assets/images/ahenfiefm.png';
   static const String radioMetadataTitle    = 'Ahenfie FM';
-  static const String radioMetadataArtist   = '106.1MHz ';
+  static const String radioMetadataArtist   = '106.1MHz';
   static const String radioChannelId        = 'com.ahenfiemedia.radio';
   static const String radioNotificationName = 'Ahenfie FM';
   static const String notificationIcon      = 'assets/images/noti.png';
 
-  // ── Now Playing API ───────────────────────────────────────────────────────
-  static const String radioNowPlayingApiUrl =
-      'https://radio.localstreamgh.com/api/nowplaying/ahenfie_radio_';
-
-  // ── TV Stream ─────────────────────────────────────────────────────────────
-  static const String tvStreamUrl =
-      'https://tv.localstreamgh.com/ahenfietv/index.m3u8';
-  static const String tvEPGUrl =
-      'https://docs.google.com/spreadsheets/d/e/2PACX-1vTjah07qiC1I0gXrJe0KWfK3rEqPw0qqAKZWY6w8_4HWAqoE6gzX2Xi-PsmBi3TtIG26AbdtI6AsW6E/pub?gid=0&single=true&output=csv';
-
-  // ── Website ───────────────────────────────────────────────────────────────
-  static const String websiteUrl = 'https://placeholder.com';
+  // ── Podcast branding ──────────────────────────────────────────────────────
+  static const String podcastShowTitle = 'Anopa Ahenfie';
+  static const String podcastHost      = 'Nana Kwadwo Jantuah, PhD';
 
   // ── Radio player labels ───────────────────────────────────────────────────
   static const String radioConnecting  = 'CONNECTING...';
@@ -64,6 +51,7 @@ class AppConstants {
   // ── TV labels ─────────────────────────────────────────────────────────────
   static const String tvLoadingStream  = 'Loading stream...';
   static const String tvErrorStream    = 'Unable to load TV stream.';
+  static const String tvConnectionLost = 'Connection lost. Tap retry to reconnect.';
   static const String tvStreamingLive  = 'Streaming live';
   static const String tvConnecting     = 'Connecting...';
   static const String tvOffline        = 'Offline';
@@ -97,15 +85,11 @@ class AppConstants {
   static const String listenSubtitle          = 'Ahenfie Media is with you';
   static const String listenLiveCTA           = 'LISTEN LIVE';
 
-  // ── Social platform labels & URLs ─────────────────────────────────────────
+  // ── Social platform labels (URLs are in Env) ──────────────────────────────
   static const String youtubeLabel   = 'YouTube';
   static const String facebookLabel  = 'Facebook';
   static const String tiktokLabel    = 'TikTok';
   static const String instagramLabel = 'Instagram';
-  static const String youtubeUrl   = 'https://m.youtube.com/@AhenfieMediagh/videos';
-  static const String facebookUrl  = 'https://m.facebook.com/people/Ahenfie-1061-FM/61585644356322/';
-  static const String tiktokUrl    = 'https://www.tiktok.com/@ahenfie1061fm';
-  static const String instagramUrl = 'https://www.instagram.com/ahenfie106.1fm';
 
   // ── Exit sheet ────────────────────────────────────────────────────────────
   static const String exitTitle        = 'Exit Ahenfie Media?';
@@ -121,20 +105,15 @@ class AppConstants {
   static const String comingSoonDescription =
       "We're working on something great. This section will be available in an upcoming update.";
 
-  // ── Contact ───────────────────────────────────────────────────────────────
+  // ── Contact (non-sensitive) ───────────────────────────────────────────────
   static const String contactTitle        = 'GET IN TOUCH';
   static const String contactSubtitle     = "We'd love to hear from you";
   static const String contactDetailsLabel = 'CONTACT DETAILS';
   static const String studioHoursLabel    = 'STUDIO HOURS';
-  static const String locationLabel       = 'LOCATION';
   static const String feedbackLabel       = 'FEEDBACK';
   static const String copiedToClipboard   = 'Copied to clipboard';
-  static const String supportEmail        = 'ahenfiemedia466@gmail.com';
-  static const String studioPhone1        = '+233 557 101 231';
-  static const String studioPhone1E164    = '+233557101231';
-  static const String studioPhone2        = '+233 557 101 232';
-  static const String studioPhone2E164    = '+233557101232';
-  static const String studioLocation      = 'Kumasi, Ashanti Region, Ghana';
+  static const String studioLocation      = 'Ankobea Street, Ollive Link, Kumasi';
+  static const String studioGpsCode       = 'AK-038-1113';
   static const String studioFrequency     = '106.1 MHz FM';
   static const String studioHours1Days    = 'Monday - Friday';
   static const String studioHours1Time    = '6:00 AM - 10:00 PM';
@@ -144,11 +123,7 @@ class AppConstants {
   static const String studioHours3Time    = '8:00 AM - 6:00 PM';
   static const String feedbackText        =
       "Have a request, programme feedback, or want to advertise? "
-      "Send us an email at ahenfiemedia466@gmail.com and we'll respond within 24 hours.";
-  static const String mapEmbedUrl         =
-      'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d475.6757172285195'
-      '!2d-1.6215717699100125!3d6.690532437593291!2m3!1f0!2f0!3f0!3m2!1i1024'
-      '!2i768!4f13.1!5e1!3m2!1sen!2sgh!4v1780514790805!5m2!1sen!2sgh';
+      "Send us an email and we'll respond within 24 hours.";
 
   // ── About ─────────────────────────────────────────────────────────────────
   static const String aboutWhoWeAreLabel    = 'Who We Are';
@@ -181,14 +156,15 @@ class AppConstants {
   static const String keySoundAlerts          = 'soundAlerts';
 
   // ── Drawer nav labels ─────────────────────────────────────────────────────
-  static const String homeLabel     = 'Home';
-  static const String liveRadioTab  = 'Live Radio';
-  static const String liveTVTab     = 'Live TV';
-  static const String profileLabel  = 'Profile';
-  static const String podcastsLabel = 'Podcasts';
-  static const String videosLabel   = 'Videos';
-  static const String newsLabel     = 'News';
-  static const String showsLabel    = 'Shows';
-  static const String eventsLabel   = 'Events';
-  static const String galleryLabel  = 'Gallery';
+  static const String homeLabel        = 'Home';
+  static const String liveRadioTab     = 'Live Radio';
+  static const String liveTVTab        = 'Live TV';
+  static const String profileLabel     = 'Profile';
+  static const String podcastsLabel    = 'Podcasts';
+  static const String presentersLabel  = 'Presenters';
+  static const String videosLabel      = 'Videos';
+  static const String newsLabel        = 'News';
+  static const String showsLabel       = 'Shows';
+  static const String eventsLabel      = 'Events';
+  static const String galleryLabel     = 'Gallery';
 }

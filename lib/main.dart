@@ -3,10 +3,11 @@ import 'screens/splash_screen.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'constants/app_constants.dart';
+import 'constants/env.dart';
 
 import 'core/theme/app_theme.dart';
 
@@ -19,13 +20,16 @@ void main() async {
     // 1. Core Flutter engine initialization
     WidgetsFlutterBinding.ensureInitialized();
 
-    // 2. Firebase must come first
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+    // MediaKit (Huawei-compatible video player)
+    MediaKit.ensureInitialized();
+
+    // 3. Supabase (for presenters data & storage)
+    await Supabase.initialize(
+      url: Env.supabaseUrl,
+      anonKey: Env.supabaseAnonKey,
     );
 
-    // 3. Initialize Audio Background BEFORE other notification services
-    
+    // 4. Initialize Audio Background BEFORE other notification services
     await JustAudioBackground.init(
       androidNotificationChannelId: 'com.ahenfie.radio.channel.audio',
       androidNotificationChannelName: 'Ahenfie FM Radio',
@@ -33,8 +37,7 @@ void main() async {
       preloadArtwork: true,
     );
 
-    // 4. Initialize FCM Notifications
-    
+    // 5. Initialize OneSignal notifications
     await NotificationService.instance.initialize();
 
   } catch (e) {

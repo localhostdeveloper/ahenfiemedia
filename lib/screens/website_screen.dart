@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:lottie/lottie.dart';
-import '../constants/app_constants.dart';
+import '../constants/env.dart';
 
 class WebsiteScreen extends StatefulWidget {
   const WebsiteScreen({super.key});
@@ -12,7 +12,7 @@ class WebsiteScreen extends StatefulWidget {
 
 class _WebsiteScreenState extends State<WebsiteScreen> {
   final bool _isPlaceholder =
-      AppConstants.websiteUrl == 'https://placeholder.com';
+      Env.websiteUrl == 'https://placeholder.com';
 
   late final WebViewController _controller;
   double _loadingProgress = 0.0;
@@ -53,7 +53,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
           onNavigationRequest: (_) => NavigationDecision.navigate,
         ),
       )
-      ..loadRequest(Uri.parse(AppConstants.websiteUrl));
+      ..loadRequest(Uri.parse(Env.websiteUrl));
   }
 
   Widget _buildPlaceholder(BuildContext context) {

@@ -1,13 +1,13 @@
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 
-import '../constants/app_constants.dart';
+import '../constants/env.dart';
 import '../models/podcast_episode.dart';
 
 class PodcastService {
   static Future<List<PodcastEpisode>> fetchEpisodes() async {
     final response = await http.get(
-      Uri.parse(AppConstants.podcastRssUrl),
+      Uri.parse(Env.podcastRssUrl),
       headers: {'User-Agent': 'AhenfieMedia/2.0'},
     );
     if (response.statusCode != 200) {

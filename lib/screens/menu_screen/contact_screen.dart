@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../constants/app_constants.dart';
+import '../../constants/env.dart';
 import '../../core/theme/app_colors.dart';
 
 class ContactScreen extends StatelessWidget {
@@ -78,28 +78,34 @@ class ContactScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             _PhoneTile(
-              phone: AppConstants.studioPhone1,
-              phoneE164: AppConstants.studioPhone1E164,
+              phone: Env.studioPhone1,
+              phoneE164: Env.studioPhone1E164,
+              hasWhatsApp: true,
             ),
             const SizedBox(height: 8),
             _PhoneTile(
-              phone: AppConstants.studioPhone2,
-              phoneE164: AppConstants.studioPhone2E164,
+              phone: Env.studioPhone2,
+              phoneE164: Env.studioPhone2E164,
             ),
             const SizedBox(height: 8),
             _ContactTile(
               icon: Icons.email_rounded,
               label: 'Email',
-              value: AppConstants.supportEmail,
-              onTap: () => _copy(context, AppConstants.supportEmail),
+              value: Env.supportEmail,
+              onTap: () => _copy(context, Env.supportEmail),
               trailing: Icon(Icons.copy_rounded, color: colors.textMuted, size: 16),
             ),
             const SizedBox(height: 8),
             _ContactTile(
               icon: Icons.location_on_rounded,
-              label: 'Location',
+              label: 'Location  •  ${AppConstants.studioGpsCode}',
               value: AppConstants.studioLocation,
-              onTap: null,
+              onTap: () => launchUrl(
+                Uri.parse(Env.mapUrl),
+                mode: LaunchMode.externalApplication,
+              ),
+              trailing: Icon(Icons.open_in_new_rounded,
+                  color: context.colors.textMuted, size: 16),
             ),
             const SizedBox(height: 8),
             _ContactTile(
@@ -107,19 +113,6 @@ class ContactScreen extends StatelessWidget {
               label: 'Frequency',
               value: AppConstants.studioFrequency,
               onTap: null,
-            ),
-
-            const SizedBox(height: 28),
-
-            // ── Map ───────────────────────────────────────────────
-            _sectionLabel(AppConstants.locationLabel, colors),
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: SizedBox(
-                height: 220,
-                child: _MapView(),
-              ),
             ),
 
             const SizedBox(height: 28),
@@ -202,8 +195,13 @@ class ContactScreen extends StatelessWidget {
 class _PhoneTile extends StatelessWidget {
   final String phone;
   final String phoneE164;
+  final bool hasWhatsApp;
 
-  const _PhoneTile({required this.phone, required this.phoneE164});
+  const _PhoneTile({
+    required this.phone,
+    required this.phoneE164,
+    this.hasWhatsApp = false,
+  });
 
   Future<void> _call() async =>
       launchUrl(Uri.parse('tel:$phoneE164'), mode: LaunchMode.externalApplication);
@@ -256,14 +254,15 @@ class _PhoneTile extends StatelessWidget {
             label: 'Call',
             onTap: _call,
           ),
-          const SizedBox(width: 6),
-          // WhatsApp button
-          _ActionBtn(
-            icon: Icons.chat_rounded,
-            label: 'WhatsApp',
-            onTap: _whatsapp,
-            color: const Color(0xFF25D366),
-          ),
+          if (hasWhatsApp) ...[
+            const SizedBox(width: 6),
+            _ActionBtn(
+              icon: Icons.chat_rounded,
+              label: 'WhatsApp',
+              onTap: _whatsapp,
+              color: const Color(0xFF25D366),
+            ),
+          ],
         ],
       ),
     );
@@ -373,50 +372,6 @@ class _ContactTile extends StatelessWidget {
       ),
     );
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Google Maps embed via WebView
-// ─────────────────────────────────────────────────────────────────────────────
-class _MapView extends StatefulWidget {
-  @override
-  State<_MapView> createState() => _MapViewState();
-}
-
-class _MapViewState extends State<_MapView> {
-  late final WebViewController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.transparent)
-      ..loadHtmlString('''
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  * { margin: 0; padding: 0; }
-  html, body { width: 100%; height: 100%; overflow: hidden; }
-  iframe { width: 100%; height: 100%; border: 0; display: block; }
-</style>
-</head>
-<body>
-<iframe
-  src="${AppConstants.mapEmbedUrl}"
-  allowfullscreen=""
-  loading="lazy"
-  referrerpolicy="no-referrer-when-downgrade">
-</iframe>
-</body>
-</html>
-''');
-  }
-
-  @override
-  Widget build(BuildContext context) => WebViewWidget(controller: _ctrl);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

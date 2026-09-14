@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/app_constants.dart';
+import '../constants/env.dart';
 import '../core/theme/app_colors.dart';
 import '../providers/radio_player_provider.dart';
 import '../providers/tv_player_provider.dart';
@@ -14,14 +15,19 @@ import 'about_screen.dart';
 import 'home_feed_screen.dart';
 import 'profile_screen.dart';
 import 'radio_screen.dart';
-import 'social_platform_screen.dart';
 import 'tv_screen.dart';
 import 'menu_screen/coming_soon_screen.dart';
 import 'menu_screen/contact_screen.dart';
 import 'menu_screen/notifications_screen.dart';
 import 'menu_screen/podcast_screen.dart';
+import 'menu_screen/presenters_screen.dart';
 import 'menu_screen/privacy_policy_screen.dart';
 import 'menu_screen/settings_screen.dart';
+import 'menu_screen/events_screen.dart';
+import 'menu_screen/gallery_screen.dart';
+import 'menu_screen/news_screen.dart';
+import 'menu_screen/shows_screen.dart';
+import 'menu_screen/social_media_screen.dart';
 import 'menu_screen/videos_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -68,36 +74,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _onPushSelected(String label) {
+    // Social platforms open directly in external browser
+    final socialUrls = <String, String>{
+      AppConstants.youtubeLabel:   Env.youtubeUrl,
+      AppConstants.facebookLabel:  Env.facebookUrl,
+      AppConstants.tiktokLabel:    Env.tiktokUrl,
+      AppConstants.instagramLabel: Env.instagramUrl,
+    };
+    if (socialUrls.containsKey(label)) {
+      launchUrl(Uri.parse(socialUrls[label]!),
+          mode: LaunchMode.externalApplication);
+      return;
+    }
+
     final Widget screen;
     switch (label) {
-      case 'YouTube':
-        screen = const SocialPlatformScreen(
-          label: 'YouTube',
-          icon: FontAwesomeIcons.youtube,
-          color: Color(0xFFFF0000),
-          url: AppConstants.youtubeUrl,
-        );
-      case 'Facebook':
-        screen = const SocialPlatformScreen(
-          label: 'Facebook',
-          icon: FontAwesomeIcons.facebook,
-          color: Color(0xFF1877F2),
-          url: AppConstants.facebookUrl,
-        );
-      case 'TikTok':
-        screen = const SocialPlatformScreen(
-          label: 'TikTok',
-          icon: FontAwesomeIcons.tiktok,
-          color: Color(0xFFEE1D52),
-          url: AppConstants.tiktokUrl,
-        );
-      case 'Instagram':
-        screen = const SocialPlatformScreen(
-          label: 'Instagram',
-          icon: FontAwesomeIcons.instagram,
-          color: Color(0xFFE4405F),
-          url: AppConstants.instagramUrl,
-        );
+      case AppConstants.socialMediaLabel:
+        screen = const SocialMediaScreen();
+      case 'Presenters':
+        screen = const PresentersScreen();
       case 'Podcasts':
         screen = const PodcastScreen();
       case 'Videos':
@@ -111,25 +106,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 'Contact':
         screen = const ContactScreen();
       case 'News':
-        screen = const ComingSoonScreen(
-          title: 'News',
-          icon: Icons.article_rounded,
-        );
+        screen = const NewsScreen();
       case 'Shows':
-        screen = const ComingSoonScreen(
-          title: 'Shows',
-          icon: Icons.live_tv_rounded,
-        );
+        screen = const ShowsScreen();
       case 'Events':
-        screen = const ComingSoonScreen(
-          title: 'Events',
-          icon: Icons.event_rounded,
-        );
+        screen = const EventsScreen();
       case 'Gallery':
-        screen = const ComingSoonScreen(
-          title: 'Gallery',
-          icon: Icons.photo_library_rounded,
-        );
+        screen = const GalleryScreen();
       default:
         screen = ComingSoonScreen(
           title: label,

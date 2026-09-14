@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../constants/env.dart';
+
 class SocialMediaLink {
   final String title;
   final FaIconData icon;
@@ -17,34 +19,6 @@ class SocialMediaLink {
     required this.color,
   });
 }
-
-// Fixed Icon names for newer font_awesome_flutter versions
-const List<SocialMediaLink> _socialLinks = [
-  SocialMediaLink(
-    title: 'Facebook',
-    icon: FontAwesomeIcons.facebook, 
-    url: 'https://www.facebook.com/people/Ahenfie-1061-FM/61585644356322/',
-    color: Color(0xFF1877F2),
-  ),
-  SocialMediaLink(
-    title: 'Instagram',
-    icon: FontAwesomeIcons.instagram,
-    url: 'https://www.instagram.com/ahenfie106.1fm',
-    color: Color(0xFFE4405F),
-  ),
-  SocialMediaLink(
-    title: 'TikTok',
-    icon: FontAwesomeIcons.tiktok,
-    url: 'https://www.tiktok.com/@ahenfie1061fm',
-    color: Color(0xFF000000),
-  ),
-  SocialMediaLink(
-    title: 'YouTube',
-    icon: FontAwesomeIcons.youtube,
-    url: 'https://www.youtube.com/@AhenfieMediagh',
-    color: Color(0xFFFF0000),
-  ),
-];
 
 class SocialMediaScreen extends StatelessWidget {
   const SocialMediaScreen({super.key});
@@ -75,6 +49,13 @@ class SocialMediaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final socialLinks = [
+      SocialMediaLink(title: 'Facebook',  icon: FontAwesomeIcons.facebook,  url: Env.facebookUrl,  color: const Color(0xFF1877F2)),
+      SocialMediaLink(title: 'Instagram', icon: FontAwesomeIcons.instagram, url: Env.instagramUrl, color: const Color(0xFFE4405F)),
+      SocialMediaLink(title: 'TikTok',    icon: FontAwesomeIcons.tiktok,    url: Env.tiktokUrl,    color: const Color(0xFF000000)),
+      SocialMediaLink(title: 'YouTube',   icon: FontAwesomeIcons.youtube,   url: Env.youtubeUrl,   color: const Color(0xFFFF0000)),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Connect with Us'),
@@ -95,7 +76,7 @@ class SocialMediaScreen extends StatelessWidget {
                 ),
               ),
               // Spread operator with map
-              ..._socialLinks.map((link) => Padding(
+              ...socialLinks.map((link) => Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: _buildSocialListTile(context, link),
               )),

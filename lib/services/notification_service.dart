@@ -1,175 +1,149 @@
-// lib/services/notification_service.dart
+import 'dart:convert';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// APP SPECIFIC IMPORTS
+import '../constants/env.dart';
+import '../models/app_notification.dart';
 import '../navigation_key.dart';
 import '../screens/menu_screen/notifications_screen.dart';
-import '../models/app_notification.dart';
-
-// --- Global Background Handler ---
-@pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint("Handling a background message: ${message.messageId}");
-}
 
 class NotificationService {
-  // Singleton instance
   static final NotificationService instance = NotificationService._internal();
   factory NotificationService() => instance;
   NotificationService._internal();
 
-  final _firebaseMessaging = FirebaseMessaging.instance;
-  final _localNotifications = FlutterLocalNotificationsPlugin();
+  static const _storageKey = 'ahenfie_notifications';
+  static const _maxAgeDays = 7;
 
-  // Storage for the notification history
   final List<AppNotification> _notifications = [];
+  List<AppNotification> get notifications => List.unmodifiable(_notifications);
 
-  // Public getter for the notifications list
-  List<AppNotification> get notifications => _notifications;
+  int get unreadCount => _notifications.where((n) => !n.isRead).length;
+
+  // ── Initialization ────────────────────────────────────────────────────────
 
   Future<void> initialize() async {
-    // Set up the background message handler
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    await _loadFromStorage();
 
-    // Request permissions
-    await _requestPermissions();
+    OneSignal.initialize(Env.oneSignalAppId);
+    await OneSignal.Notifications.requestPermission(true);
 
-    // Configure Local Notifications
-    await _initLocalNotifications();
+    // Foreground: save + display
+    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+      _save(event.notification);
+      event.notification.display();
+    });
 
-    // Set up listeners
-    _setupMessageListeners();
-
-    // Get initial token
-    await _getFCMToken();
+    // Tap: save (may already exist) + navigate
+    OneSignal.Notifications.addClickListener((event) {
+      _save(event.notification);
+      _navigateTo(event.notification.notificationId);
+    });
   }
 
-  void _saveNotification(RemoteMessage message) {
-    if (message.notification != null) {
-      final newNotification = AppNotification(
-        id: message.messageId ?? DateTime.now().microsecondsSinceEpoch.toString(),
-        title: message.notification!.title ?? 'No Title',
-        body: message.notification!.body ?? 'No Body',
-        timestamp: message.sentTime ?? DateTime.now(),
-        data: message.data,
+  // ── Persistence ───────────────────────────────────────────────────────────
+
+  Future<void> _loadFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_storageKey);
+      if (raw == null) return;
+
+      final cutoff =
+          DateTime.now().subtract(const Duration(days: _maxAgeDays));
+      final list = (jsonDecode(raw) as List)
+          .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
+          .where((n) => n.timestamp.isAfter(cutoff))
+          .toList();
+
+      _notifications
+        ..clear()
+        ..addAll(list);
+    } catch (e) {
+      debugPrint('NotificationService load error: $e');
+    }
+  }
+
+  Future<void> _persist() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _storageKey,
+        jsonEncode(_notifications.map((n) => n.toJson()).toList()),
       );
-      _notifications.insert(0, newNotification);
+    } catch (e) {
+      debugPrint('NotificationService persist error: $e');
     }
   }
 
-  Future<void> _requestPermissions() async {
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
+  // ── CRUD ──────────────────────────────────────────────────────────────────
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint('User granted notification permissions');
+  void _save(OSNotification notification) {
+    // Avoid duplicates
+    if (_notifications.any((n) => n.id == notification.notificationId)) return;
+
+    _notifications.insert(
+      0,
+      AppNotification(
+        id: notification.notificationId,
+        title: notification.title ?? 'Notification',
+        body: notification.body ?? '',
+        timestamp: DateTime.now(),
+        data: notification.additionalData?.cast<String, dynamic>() ?? {},
+      ),
+    );
+    _persist();
+  }
+
+  Future<void> markAsRead(String id) async {
+    final i = _notifications.indexWhere((n) => n.id == id);
+    if (i < 0) return;
+    _notifications[i] = _notifications[i].copyWith(isRead: true);
+    await _persist();
+  }
+
+  Future<void> markAllAsRead() async {
+    for (var i = 0; i < _notifications.length; i++) {
+      _notifications[i] = _notifications[i].copyWith(isRead: true);
     }
+    await _persist();
   }
 
-  Future<String?> _getFCMToken() async {
-    String? token = await _firebaseMessaging.getToken();
-    debugPrint("FCM Registration Token: $token");
-    return token;
+  Future<void> deleteNotification(String id) async {
+    _notifications.removeWhere((n) => n.id == id);
+    await _persist();
   }
 
-  // --- FIXED: Initialization with correct parameter handling ---
-  Future<void> _initLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings();
-
-    const initializationSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
-    await _localNotifications.initialize(
-      settings: initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) {
-        _handleNotificationTap(response.payload);
-      },
-    );
+  Future<void> clearAll() async {
+    _notifications.clear();
+    await _persist();
   }
 
-  void _setupMessageListeners() {
-    // 1. Foreground
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      _saveNotification(message);
-      if (message.notification != null) {
-        _showLocalNotification(message);
-      }
-    });
-
-    // 2. Background Tap
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      _saveNotification(message);
-      _handleNotificationTap(message.messageId);
-    });
-
-    // 3. Terminated Tap
-    _firebaseMessaging.getInitialMessage().then((RemoteMessage? message) {
-      if (message != null) {
-        _saveNotification(message);
-        _handleNotificationTap(message.messageId);
-      }
-    });
-
-    // 4. Token Refresh
-    _firebaseMessaging.onTokenRefresh.listen((String newToken) {
-      debugPrint('FCM Token Refreshed: $newToken');
-    });
-  }
-
-  // --- FIXED: Named arguments for .show() method ---
-  void _showLocalNotification(RemoteMessage message) {
-    const androidDetails = AndroidNotificationDetails(
-      'radio_channel',
-      'Radio Broadcasts',
-      channelDescription: 'Notifications for live broadcasts and updates.',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-    );
-    const notificationDetails = NotificationDetails(android: androidDetails);
-
-    _localNotifications.show(
-      id: message.notification.hashCode,
-      title: message.notification!.title,
-      body: message.notification!.body,
-      notificationDetails: notificationDetails,
-      payload: message.messageId ?? DateTime.now().microsecondsSinceEpoch.toString(),
-    );
-  }
-
-  void _handleNotificationTap([String? messageId]) {
-    if (navigatorKey.currentState != null) {
-      navigatorKey.currentState!.push(
-        MaterialPageRoute(
-          builder: (context) => NotificationsScreen(initialMessageId: messageId),
-        ),
-      );
-    }
-  }
+  // ── Topics (OneSignal tags) ────────────────────────────────────────────────
 
   Future<void> subscribeToTopic(String topic) async {
-    try {
-      await _firebaseMessaging.subscribeToTopic(topic);
-    } catch (e) {
-      debugPrint('Error subscribing: $e');
-    }
+    await OneSignal.User.addTagWithKey(topic, 'true');
+    OneSignal.User.pushSubscription.optIn();
   }
 
   Future<void> unsubscribeFromTopic(String topic) async {
-    try {
-      await _firebaseMessaging.unsubscribeFromTopic(topic);
-    } catch (e) {
-      debugPrint('Error unsubscribing: $e');
-    }
+    await OneSignal.User.removeTag(topic);
+    OneSignal.User.pushSubscription.optOut();
+  }
+
+  Future<void> setUserTag(String key, String value) async {
+    await OneSignal.User.addTagWithKey(key, value);
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+
+  void _navigateTo([String? id]) {
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (_) => NotificationsScreen(initialMessageId: id),
+      ),
+    );
   }
 }

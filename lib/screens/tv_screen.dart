@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:media_kit_video/media_kit_video.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 
 import '../constants/app_constants.dart';
 import '../core/theme/app_colors.dart';
@@ -16,11 +20,142 @@ class TVScreen extends ConsumerStatefulWidget {
   ConsumerState<TVScreen> createState() => _TVScreenState();
 }
 
-class _TVScreenState extends ConsumerState<TVScreen> {
+class _TVScreenState extends ConsumerState<TVScreen>
+    with WidgetsBindingObserver {
+  // Full top-to-bottom swipe over this many logical pixels swings 0..1.
+  static const double _dragSensitivity = 220.0;
+
+  double _volume = 1.0;
+  double _brightness = 0.5;
+  bool _isPaused = false;
+
+  // True only when we auto-paused due to backgrounding — distinct from
+  // _isPaused, which also covers an explicit double-tap pause.
+  bool _pausedForBackground = false;
+
+  bool _showVolumeOverlay = false;
+  bool _showBrightnessOverlay = false;
+  bool _showPlayPauseFlash = false;
+
+  bool? _dragOnLeft;
+  Timer? _hideOverlayTimer;
+  Timer? _hidePlayPauseTimer;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     widget.onEnter();
+    _loadInitialBrightness();
+  }
+
+  Future<void> _loadInitialBrightness() async {
+    try {
+      final b = await ScreenBrightness().application;
+      if (mounted) setState(() => _brightness = b);
+    } catch (_) {
+      // Not supported on this platform — keep the default.
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final tvState = ref.read(tvPlayerProvider);
+    final notifier = ref.read(tvPlayerProvider.notifier);
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      // Don't override an explicit double-tap pause, and don't bother if
+      // there's nothing actually playing.
+      if (!_isPaused && tvState.state == TVPlayerState.playing) {
+        _pausedForBackground = true;
+        notifier.pause();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      if (_pausedForBackground) {
+        _pausedForBackground = false;
+        notifier.resume();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _hideOverlayTimer?.cancel();
+    _hidePlayPauseTimer?.cancel();
+    ScreenBrightness().resetApplicationScreenBrightness().catchError((_) {});
+    super.dispose();
+  }
+
+  void _onVerticalDragStart(DragStartDetails details, double width) {
+    _dragOnLeft = details.localPosition.dx < width / 2;
+  }
+
+  void _onVerticalDragUpdate(DragUpdateDetails details) {
+    final onLeft = _dragOnLeft;
+    if (onLeft == null) return;
+    final delta = -details.delta.dy / _dragSensitivity;
+
+    if (onLeft) {
+      final next = (_brightness + delta).clamp(0.02, 1.0);
+      setState(() {
+        _brightness = next;
+        _showBrightnessOverlay = true;
+        _showVolumeOverlay = false;
+      });
+      ScreenBrightness().setApplicationScreenBrightness(next).catchError((_) {});
+    } else {
+      final next = (_volume + delta).clamp(0.0, 1.0);
+      setState(() {
+        _volume = next;
+        _showVolumeOverlay = true;
+        _showBrightnessOverlay = false;
+      });
+      _applyVolume(next);
+    }
+  }
+
+  void _onVerticalDragEnd(DragEndDetails details) {
+    _dragOnLeft = null;
+    _hideOverlayTimer?.cancel();
+    _hideOverlayTimer = Timer(const Duration(milliseconds: 700), () {
+      if (mounted) {
+        setState(() {
+          _showVolumeOverlay = false;
+          _showBrightnessOverlay = false;
+        });
+      }
+    });
+  }
+
+  void _applyVolume(double normalized) {
+    final tvState = ref.read(tvPlayerProvider);
+    switch (tvState.mode) {
+      case TVPlayerMode.chewie:
+        tvState.chewieController?.videoPlayerController.setVolume(normalized);
+      case TVPlayerMode.mediaKit:
+        tvState.mediaKitController?.player.setVolume(normalized * 100);
+      case null:
+        break;
+    }
+  }
+
+  void _togglePlayPause() {
+    final notifier = ref.read(tvPlayerProvider.notifier);
+    setState(() {
+      _isPaused = !_isPaused;
+      _showPlayPauseFlash = true;
+    });
+    if (_isPaused) {
+      notifier.pause();
+    } else {
+      notifier.resume();
+    }
+    _hidePlayPauseTimer?.cancel();
+    _hidePlayPauseTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) setState(() => _showPlayPauseFlash = false);
+    });
   }
 
   @override
@@ -42,47 +177,105 @@ class _TVScreenState extends ConsumerState<TVScreen> {
           // ── Video player ─────────────────────────────────────
           AspectRatio(
             aspectRatio: 16 / 9,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                _VideoContent(
-                  tvState: tvState,
-                  onRetry: () => ref.read(tvPlayerProvider.notifier).retry(),
-                ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onVerticalDragStart: isPlaying
+                      ? (d) => _onVerticalDragStart(d, constraints.maxWidth)
+                      : null,
+                  onVerticalDragUpdate:
+                      isPlaying ? _onVerticalDragUpdate : null,
+                  onVerticalDragEnd: isPlaying ? _onVerticalDragEnd : null,
+                  onDoubleTap: isPlaying ? _togglePlayPause : null,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _VideoContent(
+                        tvState: tvState,
+                        onRetry: () =>
+                            ref.read(tvPlayerProvider.notifier).retry(),
+                      ),
 
-                // LIVE badge
-                if (isPlaying)
-                  Positioned(
-                    top: 10,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.circle, color: Colors.white, size: 6),
-                          SizedBox(width: 5),
-                          Text(
-                            AppConstants.liveLabel,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1,
+                      // LIVE badge
+                      if (isPlaying)
+                        Positioned(
+                          top: 10,
+                          left: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.circle,
+                                    color: Colors.white, size: 6),
+                                SizedBox(width: 5),
+                                Text(
+                                  AppConstants.liveLabel,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
+
+                      // Volume / brightness gesture indicator
+                      if (_showVolumeOverlay)
+                        Center(
+                          child: _GestureIndicator(
+                            icon: _volume == 0
+                                ? Icons.volume_off_rounded
+                                : Icons.volume_up_rounded,
+                            value: _volume,
+                          ),
+                        ),
+                      if (_showBrightnessOverlay)
+                        Center(
+                          child: _GestureIndicator(
+                            icon: Icons.brightness_6_rounded,
+                            value: _brightness,
+                          ),
+                        ),
+
+                      // Double-tap play/pause flash
+                      IgnorePointer(
+                        child: AnimatedOpacity(
+                          opacity: _showPlayPauseFlash ? 1 : 0,
+                          duration: const Duration(milliseconds: 150),
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.55),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _isPaused
+                                    ? Icons.pause_rounded
+                                    : Icons.play_arrow_rounded,
+                                color: Colors.white,
+                                size: 40,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-              ],
+                );
+              },
             ),
           ),
 
@@ -196,6 +389,53 @@ class _TVScreenState extends ConsumerState<TVScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+class _GestureIndicator extends StatelessWidget {
+  final IconData icon;
+  final double value;
+
+  const _GestureIndicator({required this.icon, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 28),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 80,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: value.clamp(0.0, 1.0),
+                minHeight: 5,
+                backgroundColor: Colors.white24,
+                color: AppColors.primaryGold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${(value * 100).round()}%',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 class _VideoContent extends StatelessWidget {
   final TVPlayerData tvState;
   final VoidCallback onRetry;
@@ -266,11 +506,17 @@ class _VideoContent extends StatelessWidget {
         ),
       ),
 
-      TVPlayerState.playing => tvState.chewieController != null
-          ? Chewie(controller: tvState.chewieController!)
-          : const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryGold),
+      TVPlayerState.playing => switch (tvState.mode) {
+          TVPlayerMode.chewie when tvState.chewieController != null =>
+            Chewie(controller: tvState.chewieController!),
+          TVPlayerMode.mediaKit when tvState.mediaKitController != null =>
+            Video(
+              controller: tvState.mediaKitController!,
+              controls: AdaptiveVideoControls,
             ),
+          _ => const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGold)),
+        },
     };
   }
 }

@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +7,7 @@ import '../constants/app_constants.dart';
 import '../core/theme/app_colors.dart';
 import '../models/program.dart';
 import '../providers/radio_player_provider.dart';
+import '../services/radio_schedule_service.dart';
 import '../widgets/program_schedule_card.dart';
 
 const _kKentePattern = 'assets/images/b92f2e77-722f-4236-9b18-6d31266aa9dd 2.jpg';
@@ -602,11 +602,8 @@ class _ScheduleSheet extends StatelessWidget {
               Divider(color: colors.divider, height: 20),
 
               Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('programs')
-                      .orderBy('time')
-                      .snapshots(),
+                child: StreamBuilder<List<Program>>(
+                  stream: RadioScheduleService.stream(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return Center(
@@ -624,8 +621,8 @@ class _ScheduleSheet extends StatelessWidget {
                       );
                     }
 
-                    final docs = snapshot.data?.docs ?? [];
-                    if (docs.isEmpty) {
+                    final programs = snapshot.data ?? [];
+                    if (programs.isEmpty) {
                       return Center(
                         child: Text(
                           AppConstants.noScheduleAvailable,
@@ -638,9 +635,9 @@ class _ScheduleSheet extends StatelessWidget {
                       controller: scrollController,
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       physics: const BouncingScrollPhysics(),
-                      itemCount: docs.length,
+                      itemCount: programs.length,
                       itemBuilder: (_, i) => ProgramScheduleCard(
-                        program: Program.fromFirestore(docs[i]),
+                        program: programs[i],
                       ),
                     );
                   },

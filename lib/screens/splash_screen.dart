@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:upgrader/upgrader.dart';
 
 import '../constants/app_constants.dart';
 import '../core/theme/app_colors.dart';
@@ -74,7 +75,12 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (_, _, _) => const HomeScreen(),
+        pageBuilder: (_, _, _) => UpgradeAlert(
+          upgrader: Upgrader(
+            durationUntilAlertAgain: const Duration(days: 1),
+          ),
+          child: const HomeScreen(),
+        ),
         transitionsBuilder: (_, animation, _, child) => FadeTransition(
           opacity: animation,
           child: child,

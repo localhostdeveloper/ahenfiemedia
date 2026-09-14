@@ -1,19 +1,43 @@
 // lib/providers/radio_player_provider.dart
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 import '../constants/app_constants.dart';
+import '../constants/env.dart';
 
 enum RadioPlayerState { stopped, playing, paused, loading, error }
 
+// just_audio_background's notification artwork only supports file:// and
+// content:// URIs — anything else gets fetched as a network URL, which
+// fails (and can crash) for a bundled asset path. Copy the asset to a real
+// file once and reuse that file:// URI.
+Future<Uri?> _notificationArtUri(String assetPath, String fileName) async {
+  try {
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/$fileName');
+    if (!await file.exists()) {
+      final bytes = await rootBundle.load(assetPath);
+      await file.writeAsBytes(
+        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
+      );
+    }
+    return Uri.file(file.path);
+  } catch (_) {
+    return null;
+  }
+}
+
 class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
   late final AudioPlayer _player;
-  final String _streamUrl = AppConstants.radioStreamUrl;
+  final String _streamUrl = Env.radioStreamUrl;
 
   String? _currentErrorMessage;
 
@@ -77,12 +101,16 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
     try {
       await _player.stop();
 
+      final artUri = await _notificationArtUri(
+        'assets/images/ahenfiefm.png',
+        'ahenfiefm_art.png',
+      );
       final mediaItem = MediaItem(
         id: 'ahenfie_radio_stream',
         album: AppConstants.radioName,
         title: AppConstants.radioMetadataTitle,
         artist: AppConstants.radioMetadataArtist,
-        artUri: Uri.parse('assets:///assets/images/ahenfiefm.png'),
+        artUri: artUri,
         genre: 'Radio',
         duration: null,
       );
@@ -103,12 +131,16 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
 
   Future<void> _tryFallbackStream() async {
     try {
+      final artUri = await _notificationArtUri(
+        'assets/images/noti.png',
+        'noti_art.png',
+      );
       final mediaItem = MediaItem(
         id: 'ahenfie_fallback',
         album: 'Ahenfie FM',
         title: 'Live Radio',
         artist: 'Ahenfie FM',
-        artUri: Uri.parse('assets/images/noti.png'),
+        artUri: artUri,
       );
 
       await _player.setAudioSource(
@@ -198,7 +230,7 @@ final radioVolumeProvider = StateProvider<double>((ref) => 1.0);
 // Now Playing from API
 class NowPlayingNotifier extends Notifier<NowPlayingData> {
   Timer? _timer;
-  final String _apiUrl = AppConstants.radioNowPlayingApiUrl;
+  final String _apiUrl = Env.radioNowPlayingUrl;
 
   @override
   NowPlayingData build() {
