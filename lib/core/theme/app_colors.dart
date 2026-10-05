@@ -23,6 +23,10 @@ class AhenfieColors extends ThemeExtension<AhenfieColors> {
   final Color divider;
   final Color drawerBg;
   final Color drawerHeader;
+  // Gold for text/links/icons on theme surfaces. Bright gold is unreadable
+  // on white, so light mode uses a deeper gold. Keep AppColors.primaryGold
+  // for fills (buttons, badges) and anything on always-dark surfaces.
+  final Color accentText;
 
   const AhenfieColors({
     required this.background,
@@ -35,6 +39,7 @@ class AhenfieColors extends ThemeExtension<AhenfieColors> {
     required this.divider,
     required this.drawerBg,
     required this.drawerHeader,
+    required this.accentText,
   });
 
   // Dark: Midnight Gold
@@ -49,27 +54,29 @@ class AhenfieColors extends ThemeExtension<AhenfieColors> {
     divider:       Color(0xFF252525),
     drawerBg:      Color(0xFF0D0D0D),
     drawerHeader:  Color(0xFF0A0A0A),
+    accentText:    AppColors.primaryGold,
   );
 
-  // Light: Golden Parchment
+  // Light: Clean White
   static const light = AhenfieColors(
-    background:    Color(0xFFFAF7F2),
+    background:    Color(0xFFF3F3F0),
     surface:       Color(0xFFFFFFFF),
-    card:          Color(0xFFF5F0E8),
-    cardBorder:    Color(0xFFE5D9C0),
-    textPrimary:   Color(0xFF1A1208),
-    textSecondary: Color(0xFF5C4830),
-    textMuted:     Color(0xFF9C8A6A),
-    divider:       Color(0xFFE0D5BE),
-    drawerBg:      Color(0xFFEFE8DC),
-    drawerHeader:  Color(0xFFE8DFD0),
+    card:          Color(0xFFFFFFFF),
+    cardBorder:    Color(0xFFE4E2DC),
+    textPrimary:   Color(0xFF141414),
+    textSecondary: Color(0xFF5E5E5E),
+    textMuted:     Color(0xFF6E6E6E),
+    divider:       Color(0xFFE8E6E1),
+    drawerBg:      Color(0xFFFFFFFF),
+    drawerHeader:  Color(0xFFF3F3F0),
+    accentText:    Color(0xFF93650D),
   );
 
   @override
   AhenfieColors copyWith({
     Color? background, Color? surface, Color? card, Color? cardBorder,
     Color? textPrimary, Color? textSecondary, Color? textMuted, Color? divider,
-    Color? drawerBg, Color? drawerHeader,
+    Color? drawerBg, Color? drawerHeader, Color? accentText,
   }) => AhenfieColors(
     background:    background    ?? this.background,
     surface:       surface       ?? this.surface,
@@ -81,6 +88,7 @@ class AhenfieColors extends ThemeExtension<AhenfieColors> {
     divider:       divider       ?? this.divider,
     drawerBg:      drawerBg      ?? this.drawerBg,
     drawerHeader:  drawerHeader  ?? this.drawerHeader,
+    accentText:    accentText    ?? this.accentText,
   );
 
   @override
@@ -97,6 +105,7 @@ class AhenfieColors extends ThemeExtension<AhenfieColors> {
       divider:       Color.lerp(divider,       other.divider,       t)!,
       drawerBg:      Color.lerp(drawerBg,      other.drawerBg,      t)!,
       drawerHeader:  Color.lerp(drawerHeader,  other.drawerHeader,  t)!,
+      accentText:    Color.lerp(accentText,    other.accentText,    t)!,
     );
   }
 }

@@ -20,22 +20,25 @@ class SettingsScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: const SingleChildScrollView(
-        padding: EdgeInsets.symmetric(vertical: 10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            // --- 1. Display/Theme Section ---
-            DisplaySettings(),
-            _Divider(),
+      body: const SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(vertical: 10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              // --- 1. Display/Theme Section ---
+              DisplaySettings(),
+              _Divider(),
 
-            // --- 2. Notifications Section ---
-            NotificationSettings(),
-            _Divider(),
+              // --- 2. Notifications Section ---
+              NotificationSettings(),
+              _Divider(),
 
-            // --- 3. App Info/Legal Section ---
-            AppInfoSection(),
-          ],
+              // --- 3. App Info/Legal Section ---
+              AppInfoSection(),
+            ],
+          ),
         ),
       ),
     );

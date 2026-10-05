@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../widgets/app_network_image.dart';
 
 // ── Model ──────────────────────────────────────────────────────────────────
 
@@ -74,48 +75,51 @@ class EventsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: eventsAsync.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryGold)),
-        error: (_, _) =>
-            _ErrorView(onRetry: () => ref.invalidate(_eventsProvider)),
-        data: (events) {
-          if (events.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.event_outlined,
-                      size: 52, color: colors.textMuted),
-                  const SizedBox(height: 14),
-                  Text('No events yet.',
-                      style:
-                          TextStyle(color: colors.textMuted, fontSize: 14)),
+      body: SafeArea(
+        top: false,
+        child: eventsAsync.when(
+          loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGold)),
+          error: (_, _) =>
+              _ErrorView(onRetry: () => ref.invalidate(_eventsProvider)),
+          data: (events) {
+            if (events.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.event_outlined,
+                        size: 52, color: colors.textMuted),
+                    const SizedBox(height: 14),
+                    Text('No events yet.',
+                        style:
+                            TextStyle(color: colors.textMuted, fontSize: 14)),
+                  ],
+                ),
+              );
+            }
+
+            final upcoming =
+                events.where((e) => e.isUpcoming).toList();
+            final past =
+                events.where((e) => !e.isUpcoming).toList();
+
+            return ListView(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              children: [
+                if (upcoming.isNotEmpty) ...[
+                  _SectionHeader('UPCOMING', colors),
+                  ...upcoming.map(
+                      (e) => _EventCard(event: e, colors: colors)),
                 ],
-              ),
+                if (past.isNotEmpty) ...[
+                  _SectionHeader('PAST EVENTS', colors),
+                  ...past.map((e) => _EventCard(event: e, colors: colors)),
+                ],
+              ],
             );
-          }
-
-          final upcoming =
-              events.where((e) => e.isUpcoming).toList();
-          final past =
-              events.where((e) => !e.isUpcoming).toList();
-
-          return ListView(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            children: [
-              if (upcoming.isNotEmpty) ...[
-                _SectionHeader('UPCOMING', colors),
-                ...upcoming.map(
-                    (e) => _EventCard(event: e, colors: colors)),
-              ],
-              if (past.isNotEmpty) ...[
-                _SectionHeader('PAST EVENTS', colors),
-                ...past.map((e) => _EventCard(event: e, colors: colors)),
-              ],
-            ],
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -172,12 +176,12 @@ class _EventCard extends StatelessWidget {
             ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(14)),
-              child: Image.network(
-                event.imageUrl!,
+              child: AppNetworkImage(
+                url: event.imageUrl!,
                 width: double.infinity,
                 height: 160,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                error: const SizedBox.shrink(),
               ),
             ),
 
@@ -197,10 +201,10 @@ class _EventCard extends StatelessWidget {
                         color: AppColors.primaryGold.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(5),
                       ),
-                      child: const Text(
+                      child: Text(
                         'UPCOMING',
                         style: TextStyle(
-                          color: AppColors.primaryGold,
+                          color: context.colors.accentText,
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1,
@@ -229,8 +233,8 @@ class _EventCard extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text(
                         dateFmt,
-                        style: const TextStyle(
-                          color: AppColors.primaryGold,
+                        style: TextStyle(
+                          color: context.colors.accentText,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -299,9 +303,9 @@ class _ErrorView extends StatelessWidget {
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded,
                 color: AppColors.primaryGold),
-            label: const Text('Retry',
+            label: Text('Retry',
                 style: TextStyle(
-                    color: AppColors.primaryGold,
+                    color: context.colors.accentText,
                     fontWeight: FontWeight.w600)),
           ),
         ],

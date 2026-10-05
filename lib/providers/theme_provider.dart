@@ -37,12 +37,6 @@ class ThemeNotifier extends Notifier<ThemeMode> {
       // ignore
     }
   }
-
-  void toggleDarkMode(bool isDark) {
-    setTheme(isDark ? ThemeMode.dark : ThemeMode.light);
-  }
-
-  bool get isDarkMode => state == ThemeMode.dark;
 }
 
 // Modern Riverpod 2.0+ provider

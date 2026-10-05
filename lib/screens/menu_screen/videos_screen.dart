@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/playlist.dart';
 import '../../providers/youtube_provider.dart';
 import 'playlist_videos_screen.dart';
+import '../../widgets/app_network_image.dart';
 
 class VideosScreen extends ConsumerWidget {
   const VideosScreen({super.key});
@@ -21,40 +22,43 @@ class VideosScreen extends ConsumerWidget {
         title: const Text(AppConstants.videosLabel),
         backgroundColor: colors.background,
       ),
-      body: playlistsAsync.when(
-        loading: () => _LoadingGrid(colors: colors),
-        error: (_, _) => _ErrorView(
-            onRetry: () => ref.invalidate(playlistsProvider)),
-        data: (playlists) {
-          if (playlists.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.video_library_outlined,
-                      size: 52, color: colors.textMuted),
-                  const SizedBox(height: 14),
-                  Text('No playlists available yet.',
-                      style: TextStyle(color: colors.textMuted, fontSize: 14)),
-                ],
-              ),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: playlists.length,
-            itemBuilder: (_, i) => _PlaylistCard(
-              playlist: playlists[i],
-              colors: colors,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      PlaylistVideosScreen(playlist: playlists[i]),
+      body: SafeArea(
+        top: false,
+        child: playlistsAsync.when(
+          loading: () => _LoadingGrid(colors: colors),
+          error: (_, _) => _ErrorView(
+              onRetry: () => ref.invalidate(playlistsProvider)),
+          data: (playlists) {
+            if (playlists.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.video_library_outlined,
+                        size: 52, color: colors.textMuted),
+                    const SizedBox(height: 14),
+                    Text('No playlists available yet.',
+                        style: TextStyle(color: colors.textMuted, fontSize: 14)),
+                  ],
+                ),
+              );
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: playlists.length,
+              itemBuilder: (_, i) => _PlaylistCard(
+                playlist: playlists[i],
+                colors: colors,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        PlaylistVideosScreen(playlist: playlists[i]),
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -92,12 +96,12 @@ class _PlaylistCard extends StatelessWidget {
               borderRadius: const BorderRadius.horizontal(
                   left: Radius.circular(14)),
               child: playlist.thumbnailUrl != null
-                  ? Image.network(
-                      playlist.thumbnailUrl!,
+                  ? AppNetworkImage(
+                      url: playlist.thumbnailUrl!,
                       width: 120,
                       height: 72,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _placeholder(colors),
+                      error: _placeholder(colors),
                     )
                   : _placeholder(colors),
             ),
@@ -203,9 +207,9 @@ class _ErrorView extends StatelessWidget {
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded,
                 color: AppColors.primaryGold),
-            label: const Text('Retry',
+            label: Text('Retry',
                 style: TextStyle(
-                    color: AppColors.primaryGold,
+                    color: context.colors.accentText,
                     fontWeight: FontWeight.w600)),
           ),
         ],

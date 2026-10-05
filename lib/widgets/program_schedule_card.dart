@@ -84,7 +84,7 @@ class ProgramScheduleCard extends StatelessWidget {
                   Text(
                     program.startTime,
                     style: TextStyle(
-                      color: isCurrent ? Colors.black : AppColors.primaryGold,
+                      color: isCurrent ? Colors.black : context.colors.accentText,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),

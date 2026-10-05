@@ -36,15 +36,29 @@ Future<Uri?> _notificationArtUri(String assetPath, String fileName) async {
 }
 
 class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
+  static const _maxReconnects = 5;
+  static const _reconnectDelays = [2, 4, 8, 8, 8]; // seconds, per attempt
+  static const _stallTimeout = Duration(seconds: 20);
+
   late final AudioPlayer _player;
   final String _streamUrl = Env.radioStreamUrl;
 
   String? _currentErrorMessage;
 
+  // True while the listener wants audio: set by play()/resume (in-app, lock
+  // screen, or after a phone call), cleared by any pause/stop. Reconnects
+  // only happen while this is true, so a paused radio never restarts itself.
+  bool _wantsToPlay = false;
+  bool _wasPlaying = false;
+  int _reconnectAttempts = 0;
+  Timer? _reconnectTimer;
+  Timer? _stallTimer;
+
+  // Incremented on every play/pause/stop — stale async work checks against it
+  int _generation = 0;
+
   AudioPlayer get player => _player;
   String? get errorMessage => _currentErrorMessage;
-
-  Null get metadata => null;
 
   @override
   RadioPlayerState build() {
@@ -53,6 +67,11 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
     // Configure audio player with better streaming settings
     _player.setLoopMode(LoopMode.off);
     _player.setVolume(1.0);
+
+    ref.onDispose(() {
+      _cancelTimers();
+      _player.dispose();
+    });
 
     _initPlayer();
     return RadioPlayerState.stopped;
@@ -63,31 +82,59 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
       final processingState = playerState.processingState;
       final playing = playerState.playing;
 
+      // Pause/resume that bypassed this notifier (lock-screen controls,
+      // audio-focus loss during a call) still reflects the user's intent.
+      // (playing only flips to false via pause/stop — errors leave it true)
+      if (_wasPlaying &&
+          !playing &&
+          (processingState == ProcessingState.ready ||
+              processingState == ProcessingState.idle)) {
+        _wantsToPlay = false;
+        _cancelTimers();
+      } else if (!_wasPlaying && playing) {
+        _wantsToPlay = true;
+      }
+      _wasPlaying = playing;
+
       if (processingState == ProcessingState.loading ||
           processingState == ProcessingState.buffering) {
         state = RadioPlayerState.loading;
         _currentErrorMessage = null;
+        if (_wantsToPlay) _startStallTimer();
       } else if (processingState == ProcessingState.ready) {
+        _stallTimer?.cancel();
         if (playing) {
           state = RadioPlayerState.playing;
+          _reconnectAttempts = 0;
         } else {
           state = RadioPlayerState.paused;
         }
         _currentErrorMessage = null;
-      } else if (processingState == ProcessingState.idle) {
-        state = RadioPlayerState.stopped;
-        _currentErrorMessage = null;
       } else if (processingState == ProcessingState.completed) {
-        state = RadioPlayerState.stopped;
-        _currentErrorMessage = null;
+        // A live stream never ends on its own — the server dropped us.
+        if (_wantsToPlay) {
+          _scheduleReconnect();
+        } else {
+          state = RadioPlayerState.stopped;
+        }
+      } else if (processingState == ProcessingState.idle) {
+        // While reconnecting, keep showing "connecting" rather than stopped
+        if (!_wantsToPlay) {
+          state = RadioPlayerState.stopped;
+          _currentErrorMessage = null;
+        }
       }
     });
 
     _player.playbackEventStream.listen(
       (event) {},
       onError: (error) {
-        _currentErrorMessage = error.toString();
-        state = RadioPlayerState.error;
+        if (_wantsToPlay) {
+          _scheduleReconnect();
+        } else {
+          _currentErrorMessage = error.toString();
+          state = RadioPlayerState.error;
+        }
       },
     );
   }
@@ -95,16 +142,22 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
   Future<void> play() async {
     if (state == RadioPlayerState.playing) return;
 
-    state = RadioPlayerState.loading;
+    _cancelTimers();
+    _wantsToPlay = true;
+    _reconnectAttempts = 0;
     _currentErrorMessage = null;
+    state = RadioPlayerState.loading;
+    await _connect(++_generation);
+  }
 
+  Future<void> _connect(int gen) async {
     try {
-      await _player.stop();
-
       final artUri = await _notificationArtUri(
         'assets/images/ahenfiefm.png',
         'ahenfiefm_art.png',
       );
+      if (gen != _generation) return;
+
       final mediaItem = MediaItem(
         id: 'ahenfie_radio_stream',
         album: AppConstants.radioName,
@@ -116,70 +169,70 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
       );
 
       await _player.setAudioSource(
-        AudioSource.uri(Uri.parse(_streamUrl), tag: mediaItem),
-      );
-
-      await _player.play();
-    } catch (e, stackTrace) {
-      debugPrint('Stack trace: $stackTrace');
-      _currentErrorMessage = e.toString();
-      state = RadioPlayerState.error;
-
-      await _tryFallbackStream();
-    }
-  }
-
-  Future<void> _tryFallbackStream() async {
-    try {
-      final artUri = await _notificationArtUri(
-        'assets/images/noti.png',
-        'noti_art.png',
-      );
-      final mediaItem = MediaItem(
-        id: 'ahenfie_fallback',
-        album: 'Ahenfie FM',
-        title: 'Live Radio',
-        artist: 'Ahenfie FM',
-        artUri: artUri,
-      );
-
-      await _player.setAudioSource(
         AudioSource.uri(
           Uri.parse(_streamUrl),
           tag: mediaItem,
           headers: {'User-Agent': 'AhenfieMedia/1.0', 'Icy-MetaData': '1'},
         ),
       );
+      if (gen != _generation) return;
 
-      await _player.play();
-      state = RadioPlayerState.playing;
-      _currentErrorMessage = null;
+      // play()'s future only completes when playback stops, so don't await it
+      unawaited(_player.play().catchError((Object _) {}));
     } catch (e) {
-      await _tryMinimalStream();
+      debugPrint('Radio connect failed: $e');
+      if (gen != _generation) return;
+      _scheduleReconnect();
     }
   }
 
-  Future<void> _tryMinimalStream() async {
-    try {
-      final mediaItem = MediaItem(id: 'radio_stream', title: 'Ahenfie FM');
+  void _scheduleReconnect() {
+    if (!_wantsToPlay) return;
+    // Errors often arrive twice (thrown + on the event stream) — retry once
+    if (_reconnectTimer?.isActive ?? false) return;
+    _stallTimer?.cancel();
 
-      await _player.stop();
-      await Future.delayed(Duration(milliseconds: 500));
-
-      await _player.setAudioSource(
-        AudioSource.uri(Uri.parse(_streamUrl), tag: mediaItem),
-      );
-
-      await _player.play();
-      state = RadioPlayerState.playing;
-      _currentErrorMessage = null;
-    } catch (e) {
+    if (_reconnectAttempts >= _maxReconnects) {
+      _wantsToPlay = false;
+      _reconnectAttempts = 0;
       _currentErrorMessage =
-          "Cannot connect to radio stream. Please try again later.";
+          'Cannot connect to radio stream. Please check your connection and try again.';
+      state = RadioPlayerState.error;
+      return;
     }
+
+    final delay = Duration(seconds: _reconnectDelays[_reconnectAttempts]);
+    _reconnectAttempts++;
+    state = RadioPlayerState.loading;
+
+    final gen = ++_generation;
+    _reconnectTimer = Timer(delay, () {
+      if (gen != _generation || !_wantsToPlay) return;
+      _connect(gen);
+    });
+  }
+
+  // Buffering that never recovers (dead connection with no error raised)
+  void _startStallTimer() {
+    if (_stallTimer?.isActive ?? false) return;
+    _stallTimer = Timer(_stallTimeout, () {
+      final ps = _player.processingState;
+      if (_wantsToPlay &&
+          (ps == ProcessingState.loading || ps == ProcessingState.buffering)) {
+        _scheduleReconnect();
+      }
+    });
+  }
+
+  void _cancelTimers() {
+    _reconnectTimer?.cancel();
+    _stallTimer?.cancel();
   }
 
   Future<void> pause() async {
+    _wantsToPlay = false;
+    _generation++;
+    _cancelTimers();
     try {
       await _player.pause();
       state = RadioPlayerState.paused;
@@ -190,6 +243,9 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
   }
 
   Future<void> stop() async {
+    _wantsToPlay = false;
+    _generation++;
+    _cancelTimers();
     try {
       await _player.stop();
       state = RadioPlayerState.stopped;
@@ -206,12 +262,6 @@ class RadioPlayerNotifier extends Notifier<RadioPlayerState> {
   void setVolume(double volume) {
     _player.setVolume(volume.clamp(0.0, 1.0));
   }
-
-  void dispose() {
-    _player.dispose();
-  }
-
-  void togglePlayPause() {}
 }
 
 final radioPlayerProvider =

@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/playlist.dart';
 import '../../models/youtube_video.dart';
 import '../../providers/youtube_provider.dart';
+import '../../widgets/app_network_image.dart';
 
 class PlaylistVideosScreen extends ConsumerStatefulWidget {
   final AppPlaylist playlist;
@@ -62,50 +63,53 @@ class _PlaylistVideosScreenState
         title: Text(widget.playlist.name),
         backgroundColor: colors.background,
       ),
-      body: Column(
-        children: [
-          // ── Inline player ──────────────────────────────────────
-          if (_currentVideo != null && _controller != null) ...[
-            YoutubePlayer(controller: _controller!),
-            _NowPlayingBar(
-              video: _currentVideo!,
-              colors: colors,
-              onClose: _closePlayer,
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            // ── Inline player ──────────────────────────────────────
+            if (_currentVideo != null && _controller != null) ...[
+              YoutubePlayer(controller: _controller!),
+              _NowPlayingBar(
+                video: _currentVideo!,
+                colors: colors,
+                onClose: _closePlayer,
+              ),
+            ],
+
+            // ── Video list ─────────────────────────────────────────
+            Expanded(
+              child: playlistId == null
+                  ? Center(
+                      child: Text('Invalid playlist URL.',
+                          style: TextStyle(color: colors.textMuted)),
+                    )
+                  : Consumer(
+                      builder: (_, ref, _) {
+                        final videosAsync =
+                            ref.watch(playlistVideosProvider(playlistId));
+                        return videosAsync.when(
+                          loading: () => _LoadingView(colors: colors),
+                          error: (_, _) => _ErrorView(
+                            onRetry: () => ref.invalidate(
+                                playlistVideosProvider(playlistId)),
+                          ),
+                          data: (videos) => ListView.builder(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            itemCount: videos.length,
+                            itemBuilder: (_, i) => _VideoCard(
+                              video: videos[i],
+                              isPlaying: videos[i].id == _currentVideo?.id,
+                              onTap: () => _playVideo(videos[i]),
+                              colors: colors,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
-
-          // ── Video list ─────────────────────────────────────────
-          Expanded(
-            child: playlistId == null
-                ? Center(
-                    child: Text('Invalid playlist URL.',
-                        style: TextStyle(color: colors.textMuted)),
-                  )
-                : Consumer(
-                    builder: (_, ref, _) {
-                      final videosAsync =
-                          ref.watch(playlistVideosProvider(playlistId));
-                      return videosAsync.when(
-                        loading: () => _LoadingView(colors: colors),
-                        error: (_, _) => _ErrorView(
-                          onRetry: () => ref.invalidate(
-                              playlistVideosProvider(playlistId)),
-                        ),
-                        data: (videos) => ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: videos.length,
-                          itemBuilder: (_, i) => _VideoCard(
-                            video: videos[i],
-                            isPlaying: videos[i].id == _currentVideo?.id,
-                            onTap: () => _playVideo(videos[i]),
-                            colors: colors,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -212,12 +216,12 @@ class _VideoCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    video.thumbnailUrl,
+                  child: AppNetworkImage(
+                    url: video.thumbnailUrl,
                     width: 110,
                     height: 62,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
+                    error: Container(
                       width: 110,
                       height: 62,
                       color: colors.surface,
@@ -293,7 +297,7 @@ class _VideoCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: isPlaying
-                          ? AppColors.primaryGold
+                          ? context.colors.accentText
                           : colors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -425,9 +429,9 @@ class _ErrorView extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded,
                   color: AppColors.primaryGold),
-              label: const Text('Retry',
+              label: Text('Retry',
                   style: TextStyle(
-                      color: AppColors.primaryGold,
+                      color: context.colors.accentText,
                       fontWeight: FontWeight.w600)),
             ),
           ],

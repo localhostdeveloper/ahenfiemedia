@@ -21,18 +21,34 @@ class TVPlayerData {
   final VideoController? mediaKitController;
   final String? errorMessage;
 
+  // True after resuming from a pause: playback continues from where it
+  // stopped, so the viewer is behind the live broadcast until goLive().
+  final bool behindLive;
+
   const TVPlayerData({
     required this.state,
     this.mode,
     this.chewieController,
     this.mediaKitController,
     this.errorMessage,
+    this.behindLive = false,
   });
+
+  TVPlayerData copyWith({bool? behindLive}) => TVPlayerData(
+        state: state,
+        mode: mode,
+        chewieController: chewieController,
+        mediaKitController: mediaKitController,
+        errorMessage: errorMessage,
+        behindLive: behindLive ?? this.behindLive,
+      );
 }
 
 class TVPlayerNotifier extends Notifier<TVPlayerData> {
   static const _maxAutoRetries = 3;
   static const _autoRetryDelay = Duration(seconds: 2);
+  // Shorter pauses barely drift from live — not worth offering a jump
+  static const _behindLiveThreshold = Duration(seconds: 5);
 
   VideoPlayerController? _vpController;
   ChewieController? _chewieController;
@@ -54,6 +70,7 @@ class TVPlayerNotifier extends Notifier<TVPlayerData> {
   // True whenever pause() was called deliberately (manual pause, tab switch,
   // app backgrounded) so the watchdog doesn't mistake it for a stream drop.
   bool _pausedIntentionally = false;
+  DateTime? _pausedAt;
 
   // Incremented on every retry — stale callbacks check against this
   int _generation = 0;
@@ -271,7 +288,15 @@ class TVPlayerNotifier extends Notifier<TVPlayerData> {
     await _start();
   }
 
+  /// Jumps back to the live broadcast. Reloading the stream always starts
+  /// at the live edge, which is reliable on both ExoPlayer and media_kit.
+  Future<void> goLive() async {
+    _pausedIntentionally = false;
+    await retry();
+  }
+
   Future<void> retry() async {
+    _pausedAt = null;
     _generation++; // invalidate any in-flight operations
     _autoRetryAttempts = 0;
     await _disposeAll();
@@ -281,6 +306,7 @@ class TVPlayerNotifier extends Notifier<TVPlayerData> {
 
   Future<void> pause() async {
     _pausedIntentionally = true;
+    _pausedAt ??= DateTime.now();
     await _vpController?.pause();
     await _mkPlayer?.pause();
     WakelockPlus.disable();
@@ -290,6 +316,12 @@ class TVPlayerNotifier extends Notifier<TVPlayerData> {
     final current = state;
     if (current.state == TVPlayerState.playing) {
       _pausedIntentionally = false;
+      final pausedAt = _pausedAt;
+      _pausedAt = null;
+      if (pausedAt != null &&
+          DateTime.now().difference(pausedAt) >= _behindLiveThreshold) {
+        state = current.copyWith(behindLive: true);
+      }
       await _vpController?.play();
       await _mkPlayer?.play();
       WakelockPlus.enable();

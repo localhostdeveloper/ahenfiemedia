@@ -79,7 +79,8 @@ class AppTheme {
     scaffoldBackgroundColor: AhenfieColors.light.background,
     extensions: const [AhenfieColors.light],
     colorScheme: const ColorScheme.light(
-      primary: AppColors.primaryGold,
+      // Deeper gold so default TextButtons/links are readable on white
+      primary: Color(0xFF93650D),
       secondary: AppColors.darkGold,
       surface: Color(0xFFFFFFFF),
       error: AppColors.error,
@@ -88,8 +89,8 @@ class AppTheme {
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
-      foregroundColor: Color(0xFF1A1208),
-      titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1A1208)),
+      foregroundColor: Color(0xFF141414),
+      titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF141414)),
     ),
     cardTheme: CardThemeData(
       color: AhenfieColors.light.card,
@@ -97,20 +98,20 @@ class AppTheme {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
     ),
     drawerTheme: const DrawerThemeData(
-      backgroundColor: Color(0xFFEFE8DC),
+      backgroundColor: Color(0xFFFFFFFF),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: const Color(0xFFFFFFFF),
       indicatorColor: AppColors.primaryGold.withValues(alpha: 0.15),
       iconTheme: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.selected)) return const IconThemeData(color: AppColors.primaryGold);
-        return const IconThemeData(color: Color(0xFF9C8A6A));
+        if (states.contains(WidgetState.selected)) return const IconThemeData(color: Color(0xFF93650D));
+        return const IconThemeData(color: Color(0xFF6E6E6E));
       }),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return const TextStyle(color: AppColors.primaryGold, fontSize: 12, fontWeight: FontWeight.w600);
+          return const TextStyle(color: Color(0xFF93650D), fontSize: 12, fontWeight: FontWeight.w600);
         }
-        return const TextStyle(color: Color(0xFF9C8A6A), fontSize: 12);
+        return const TextStyle(color: Color(0xFF6E6E6E), fontSize: 12);
       }),
       elevation: 0,
       height: 64,
@@ -121,20 +122,20 @@ class AppTheme {
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(color: AppColors.primaryGold),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: AhenfieColors.light.card,
-      contentTextStyle: const TextStyle(color: Color(0xFF5C4830)),
+      backgroundColor: const Color(0xFF1F1F1F),
+      contentTextStyle: const TextStyle(color: Color(0xFFFFFFFF)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
     ),
-    dividerTheme: const DividerThemeData(color: Color(0xFFE0D5BE), thickness: 0.6),
+    dividerTheme: const DividerThemeData(color: Color(0xFFE8E6E1), thickness: 0.6),
     textTheme: TextTheme(
-      headlineLarge: AppTypography.headlineLarge.copyWith(color: const Color(0xFF1A1208)),
-      headlineMedium: AppTypography.headlineMedium.copyWith(color: const Color(0xFF1A1208)),
-      headlineSmall: AppTypography.headlineSmall.copyWith(color: const Color(0xFF1A1208)),
-      titleLarge: AppTypography.titleLarge.copyWith(color: const Color(0xFF1A1208)),
-      titleMedium: AppTypography.titleMedium.copyWith(color: const Color(0xFF1A1208)),
-      titleSmall: AppTypography.titleSmall.copyWith(color: const Color(0xFF1A1208)),
-      bodyLarge: AppTypography.bodyLarge.copyWith(color: const Color(0xFF1A1208)),
-      bodyMedium: AppTypography.bodyMedium.copyWith(color: const Color(0xFF5C4830)),
+      headlineLarge: AppTypography.headlineLarge.copyWith(color: const Color(0xFF141414)),
+      headlineMedium: AppTypography.headlineMedium.copyWith(color: const Color(0xFF141414)),
+      headlineSmall: AppTypography.headlineSmall.copyWith(color: const Color(0xFF141414)),
+      titleLarge: AppTypography.titleLarge.copyWith(color: const Color(0xFF141414)),
+      titleMedium: AppTypography.titleMedium.copyWith(color: const Color(0xFF141414)),
+      titleSmall: AppTypography.titleSmall.copyWith(color: const Color(0xFF141414)),
+      bodyLarge: AppTypography.bodyLarge.copyWith(color: const Color(0xFF141414)),
+      bodyMedium: AppTypography.bodyMedium.copyWith(color: const Color(0xFF5E5E5E)),
     ),
   );
 }

@@ -20,152 +20,155 @@ class ContactScreen extends StatelessWidget {
         title: const Text('Contact Us'),
         backgroundColor: colors.background,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Header ────────────────────────────────────────────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? const [Color(0xFF1A1000), Color(0xFF0F0F0F)]
-                      : const [Color(0xFFF5ECDA), Color(0xFFEDE3CE)],
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Header ────────────────────────────────────────────
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? const [Color(0xFF1A1000), Color(0xFF0F0F0F)]
+                        : const [Color(0xFFFFFFFF), Color(0xFFFBF3E2)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.primaryGold.withValues(alpha: 0.2),
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.primaryGold.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryGold.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
+                child: Column(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryGold.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.headset_mic_rounded,
+                          color: AppColors.primaryGold, size: 28),
                     ),
-                    child: const Icon(Icons.headset_mic_rounded,
-                        color: AppColors.primaryGold, size: 28),
-                  ),
-                  const SizedBox(height: 14),
-                  const Text(
-                    AppConstants.contactTitle,
-                    style: TextStyle(
-                      color: AppColors.primaryGold,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
+                    const SizedBox(height: 14),
+                    Text(
+                      AppConstants.contactTitle,
+                      style: TextStyle(
+                        color: context.colors.accentText,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    AppConstants.contactSubtitle,
-                    style: TextStyle(color: colors.textMuted, fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // ── Contact details ───────────────────────────────────
-            _sectionLabel(AppConstants.contactDetailsLabel, colors),
-            const SizedBox(height: 12),
-
-            _PhoneTile(
-              phone: Env.studioPhone1,
-              phoneE164: Env.studioPhone1E164,
-              hasWhatsApp: true,
-            ),
-            const SizedBox(height: 8),
-            _PhoneTile(
-              phone: Env.studioPhone2,
-              phoneE164: Env.studioPhone2E164,
-            ),
-            const SizedBox(height: 8),
-            _ContactTile(
-              icon: Icons.email_rounded,
-              label: 'Email',
-              value: Env.supportEmail,
-              onTap: () => _copy(context, Env.supportEmail),
-              trailing: Icon(Icons.copy_rounded, color: colors.textMuted, size: 16),
-            ),
-            const SizedBox(height: 8),
-            _ContactTile(
-              icon: Icons.location_on_rounded,
-              label: 'Location  •  ${AppConstants.studioGpsCode}',
-              value: AppConstants.studioLocation,
-              onTap: () => launchUrl(
-                Uri.parse(Env.mapUrl),
-                mode: LaunchMode.externalApplication,
-              ),
-              trailing: Icon(Icons.open_in_new_rounded,
-                  color: context.colors.textMuted, size: 16),
-            ),
-            const SizedBox(height: 8),
-            _ContactTile(
-              icon: Icons.radio_rounded,
-              label: 'Frequency',
-              value: AppConstants.studioFrequency,
-              onTap: null,
-            ),
-
-            const SizedBox(height: 28),
-
-            // ── Studio hours ──────────────────────────────────────
-            _sectionLabel(AppConstants.studioHoursLabel, colors),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colors.card,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                children: [
-                  _HoursRow(
-                      days: AppConstants.studioHours1Days,
-                      hours: AppConstants.studioHours1Time),
-                  Divider(color: colors.divider, height: 20),
-                  _HoursRow(
-                      days: AppConstants.studioHours2Days,
-                      hours: AppConstants.studioHours2Time),
-                  Divider(color: colors.divider, height: 20),
-                  _HoursRow(
-                      days: AppConstants.studioHours3Days,
-                      hours: AppConstants.studioHours3Time),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 28),
-
-            // ── Feedback ──────────────────────────────────────────
-            _sectionLabel(AppConstants.feedbackLabel, colors),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colors.card,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: AppColors.primaryGold.withValues(alpha: 0.1),
+                    const SizedBox(height: 6),
+                    Text(
+                      AppConstants.contactSubtitle,
+                      style: TextStyle(color: colors.textMuted, fontSize: 13),
+                    ),
+                  ],
                 ),
               ),
-              child: Text(
-                AppConstants.feedbackText,
-                style: TextStyle(
-                    color: colors.textSecondary, fontSize: 13, height: 1.6),
-              ),
-            ),
 
-            const SizedBox(height: 16),
-          ],
+              const SizedBox(height: 24),
+
+              // ── Contact details ───────────────────────────────────
+              _sectionLabel(AppConstants.contactDetailsLabel, colors),
+              const SizedBox(height: 12),
+
+              _PhoneTile(
+                phone: Env.studioPhone1,
+                phoneE164: Env.studioPhone1E164,
+                hasWhatsApp: true,
+              ),
+              const SizedBox(height: 8),
+              _PhoneTile(
+                phone: Env.studioPhone2,
+                phoneE164: Env.studioPhone2E164,
+              ),
+              const SizedBox(height: 8),
+              _ContactTile(
+                icon: Icons.email_rounded,
+                label: 'Email',
+                value: Env.supportEmail,
+                onTap: () => _copy(context, Env.supportEmail),
+                trailing: Icon(Icons.copy_rounded, color: colors.textMuted, size: 16),
+              ),
+              const SizedBox(height: 8),
+              _ContactTile(
+                icon: Icons.location_on_rounded,
+                label: 'Location  •  ${AppConstants.studioGpsCode}',
+                value: AppConstants.studioLocation,
+                onTap: () => launchUrl(
+                  Uri.parse(Env.mapUrl),
+                  mode: LaunchMode.externalApplication,
+                ),
+                trailing: Icon(Icons.open_in_new_rounded,
+                    color: context.colors.textMuted, size: 16),
+              ),
+              const SizedBox(height: 8),
+              _ContactTile(
+                icon: Icons.radio_rounded,
+                label: 'Frequency',
+                value: AppConstants.studioFrequency,
+                onTap: null,
+              ),
+
+              const SizedBox(height: 28),
+
+              // ── Studio hours ──────────────────────────────────────
+              _sectionLabel(AppConstants.studioHoursLabel, colors),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colors.card,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  children: [
+                    _HoursRow(
+                        days: AppConstants.studioHours1Days,
+                        hours: AppConstants.studioHours1Time),
+                    Divider(color: colors.divider, height: 20),
+                    _HoursRow(
+                        days: AppConstants.studioHours2Days,
+                        hours: AppConstants.studioHours2Time),
+                    Divider(color: colors.divider, height: 20),
+                    _HoursRow(
+                        days: AppConstants.studioHours3Days,
+                        hours: AppConstants.studioHours3Time),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              // ── Feedback ──────────────────────────────────────────
+              _sectionLabel(AppConstants.feedbackLabel, colors),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colors.card,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.primaryGold.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Text(
+                  AppConstants.feedbackText,
+                  style: TextStyle(
+                      color: colors.textSecondary, fontSize: 13, height: 1.6),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
@@ -392,8 +395,8 @@ class _HoursRow extends StatelessWidget {
         Text(days,
             style: TextStyle(color: colors.textSecondary, fontSize: 13)),
         Text(hours,
-            style: const TextStyle(
-                color: AppColors.primaryGold,
+            style: TextStyle(
+                color: context.colors.accentText,
                 fontSize: 13,
                 fontWeight: FontWeight.w500)),
       ],

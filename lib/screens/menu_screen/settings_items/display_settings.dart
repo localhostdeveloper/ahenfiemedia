@@ -2,76 +2,73 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../providers/theme_provider.dart';
 
 class DisplaySettings extends ConsumerWidget {
   const DisplaySettings({super.key});
 
-  // --- Confirmation Dialog for Theme Change ---
-  Future<void> _confirmThemeChange(BuildContext context, WidgetRef ref) async {
-    final ThemeMode currentMode = ref.read(themeProvider);
-
-    // Determine the state if we switch: system will become dark, light will become dark, dark will become light
-    final bool isCurrentlyDark = currentMode == ThemeMode.dark;
-    final String newThemeName = isCurrentlyDark ? 'Light' : 'Dark';
-
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Change Theme'),
-          content: Text('Do you want to switch to the $newThemeName theme?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('CANCEL'),
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-            TextButton(
-              child: const Text('YES, SWITCH'),
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result == true) {
-      final notifier = ref.read(themeProvider.notifier);
-      notifier.toggleDarkMode(!isCurrentlyDark);
-
-      // Optional: Show a quick feedback SnackBar
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Theme switched to $newThemeName Mode.'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    }
-  }
+  static const _subtitles = {
+    ThemeMode.system: 'Matches your phone\'s light or dark setting.',
+    ThemeMode.light: 'Always use the light theme.',
+    ThemeMode.dark: 'Always use the dark theme.',
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeMode currentMode = ref.watch(themeProvider);
-    final bool isDarkModeActive = currentMode == ThemeMode.dark;
-
-    final themeNotifier = ref.read(themeProvider.notifier);
+    final colors = context.colors;
+    final currentMode = ref.watch(themeProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(context, 'Display & Appearance'),
         ListTile(
-          title: const Text('Dark Mode'),
-          subtitle: const Text('Switch between light and dark themes.'),
-          onTap: () => _confirmThemeChange(context, ref),
-          trailing: Switch(
-            value: isDarkModeActive,
-            onChanged: (bool newValue) {
-              // Switch works directly for quick toggle, using the Notifier
-              themeNotifier.toggleDarkMode(newValue);
-            },
+          title: const Text('Theme'),
+          subtitle: Text(_subtitles[currentMode]!),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<ThemeMode>(
+              segments: const [
+                ButtonSegment(
+                  value: ThemeMode.system,
+                  icon: Icon(Icons.brightness_auto_rounded),
+                  label: Text('System'),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.light,
+                  icon: Icon(Icons.light_mode_rounded),
+                  label: Text('Light'),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.dark,
+                  icon: Icon(Icons.dark_mode_rounded),
+                  label: Text('Dark'),
+                ),
+              ],
+              selected: {currentMode},
+              showSelectedIcon: false,
+              onSelectionChanged: (selection) =>
+                  ref.read(themeProvider.notifier).setTheme(selection.first),
+              style: ButtonStyle(
+                foregroundColor: WidgetStateProperty.resolveWith(
+                  (states) => states.contains(WidgetState.selected)
+                      ? colors.accentText
+                      : colors.textSecondary,
+                ),
+                backgroundColor: WidgetStateProperty.resolveWith(
+                  (states) => states.contains(WidgetState.selected)
+                      ? AppColors.primaryGold.withValues(alpha: 0.16)
+                      : Colors.transparent,
+                ),
+                side: WidgetStatePropertyAll(
+                  BorderSide(color: colors.cardBorder),
+                ),
+              ),
+            ),
           ),
         ),
       ],

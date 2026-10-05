@@ -44,8 +44,8 @@ class ComingSoonScreen extends StatelessWidget {
               const SizedBox(height: 28),
               Text(
                 title.toUpperCase(),
-                style: const TextStyle(
-                  color: AppColors.primaryGold,
+                style: TextStyle(
+                  color: context.colors.accentText,
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
@@ -84,10 +84,10 @@ class ComingSoonScreen extends StatelessWidget {
                     color: AppColors.primaryGold.withValues(alpha: 0.25),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   AppConstants.appTitle,
                   style: TextStyle(
-                    color: AppColors.primaryGold,
+                    color: context.colors.accentText,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,

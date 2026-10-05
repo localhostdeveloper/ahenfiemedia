@@ -49,4 +49,15 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getInt(_themeKey), ThemeMode.dark.index);
   });
+
+  test('can switch back to following the system theme', () async {
+    SharedPreferences.setMockInitialValues({_themeKey: ThemeMode.dark.index});
+    final container = await _loadedContainer();
+
+    await container.read(themeProvider.notifier).setTheme(ThemeMode.system);
+
+    expect(container.read(themeProvider), ThemeMode.system);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getInt(_themeKey), ThemeMode.system.index);
+  });
 }

@@ -95,7 +95,7 @@ class _PodcastScreenState extends ConsumerState<PodcastScreen> {
                       o.label,
                       style: TextStyle(
                         color: selected
-                            ? AppColors.primaryGold
+                            ? context.colors.accentText
                             : colors.textPrimary,
                         fontWeight: selected
                             ? FontWeight.w700
@@ -123,32 +123,37 @@ class _PodcastScreenState extends ConsumerState<PodcastScreen> {
       body: Column(
         children: [
           Expanded(
-            child: episodesAsync.when(
-              loading: () => const _LoadingView(),
-              error: (_, _) => _ErrorView(
-                onRetry: () => ref.invalidate(podcastEpisodesProvider),
-              ),
-              data: (episodes) {
-                if (episodes.isEmpty) return const _EmptyView();
-                final sorted = _sorted(episodes, _sortOrder);
-                return _EpisodeList(
-                  episodes: sorted,
-                  playerState: playerState,
-                  onTap: (ep) {
-                    final notifier =
-                        ref.read(podcastPlayerProvider.notifier);
-                    if (notifier.isCurrentEpisode(ep.guid)) {
-                      if (playerState.status == PodcastPlayerStatus.playing) {
-                        notifier.pause();
+            child: SafeArea(
+              top: false,
+              // Mini player pads itself for the system nav bar when visible
+              bottom: !playerState.isActive,
+              child: episodesAsync.when(
+                loading: () => const _LoadingView(),
+                error: (_, _) => _ErrorView(
+                  onRetry: () => ref.invalidate(podcastEpisodesProvider),
+                ),
+                data: (episodes) {
+                  if (episodes.isEmpty) return const _EmptyView();
+                  final sorted = _sorted(episodes, _sortOrder);
+                  return _EpisodeList(
+                    episodes: sorted,
+                    playerState: playerState,
+                    onTap: (ep) {
+                      final notifier =
+                          ref.read(podcastPlayerProvider.notifier);
+                      if (notifier.isCurrentEpisode(ep.guid)) {
+                        if (playerState.status == PodcastPlayerStatus.playing) {
+                          notifier.pause();
+                        } else {
+                          notifier.resume();
+                        }
                       } else {
-                        notifier.resume();
+                        notifier.playEpisode(ep);
                       }
-                    } else {
-                      notifier.playEpisode(ep);
-                    }
-                  },
-                );
-              },
+                    },
+                  );
+                },
+              ),
             ),
           ),
           if (playerState.isActive)
@@ -306,7 +311,7 @@ class _EpisodeCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: isCurrent
-                          ? AppColors.primaryGold
+                          ? context.colors.accentText
                           : colors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -350,7 +355,7 @@ class _EpisodeCard extends StatelessWidget {
                 'EP $number',
                 style: TextStyle(
                   color: isCurrent
-                      ? AppColors.primaryGold
+                      ? context.colors.accentText
                       : colors.textMuted,
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -639,10 +644,10 @@ class _ErrorView extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded,
                   color: AppColors.primaryGold),
-              label: const Text(
+              label: Text(
                 'Retry',
                 style: TextStyle(
-                    color: AppColors.primaryGold,
+                    color: context.colors.accentText,
                     fontWeight: FontWeight.w600),
               ),
             ),

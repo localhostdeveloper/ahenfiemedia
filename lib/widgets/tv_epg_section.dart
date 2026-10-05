@@ -99,7 +99,7 @@ class _EPGRow extends StatelessWidget {
                     program.startTime,
                     style: TextStyle(
                       color: isCurrent
-                          ? AppColors.primaryGold
+                          ? context.colors.accentText
                           : colors.textMuted,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

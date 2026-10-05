@@ -18,12 +18,14 @@
         android:enableOnBackInvokedCallback="true">
         
 
-        <!-- ✅ Use AudioServiceActivity for correct AudioService integration -->
+        <!-- MainActivity extends AudioServiceActivity (background audio) and adds Live TV picture-in-picture -->
        <activity
-    android:name="com.ryanheise.audioservice.AudioServiceActivity"
+    android:name=".MainActivity"
     android:exported="true"
     android:launchMode="singleTop"
     android:hardwareAccelerated="true"
+    android:supportsPictureInPicture="true"
+    android:resizeableActivity="true"
     android:windowSoftInputMode="adjustResize"
     android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
 

@@ -135,7 +135,8 @@ class _UpdateAvailableSheet extends StatelessWidget {
     final colors = context.colors;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+      margin: EdgeInsets.fromLTRB(
+          12, 0, 12, 24 + MediaQuery.paddingOf(context).bottom),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(24),
@@ -257,7 +258,8 @@ class _UpToDateSheet extends StatelessWidget {
     final colors = context.colors;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+      margin: EdgeInsets.fromLTRB(
+          12, 0, 12, 24 + MediaQuery.paddingOf(context).bottom),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(24),
@@ -357,7 +359,8 @@ class _ErrorSheet extends StatelessWidget {
     final colors = context.colors;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+      margin: EdgeInsets.fromLTRB(
+          12, 0, 12, 24 + MediaQuery.paddingOf(context).bottom),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(24),

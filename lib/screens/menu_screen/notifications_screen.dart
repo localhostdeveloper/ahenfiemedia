@@ -135,22 +135,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ],
         ],
       ),
-      body: _notifications.isEmpty
-          ? _EmptyState()
-          : ListView.separated(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              itemCount: _notifications.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (_, i) {
-                final n = _notifications[i];
-                return _NotificationTile(
-                  notification: n,
-                  onTap: () => _openDetail(n),
-                  onDelete: () => _delete(n.id),
-                );
-              },
-            ),
+      body: SafeArea(
+        top: false,
+        child: _notifications.isEmpty
+            ? _EmptyState()
+            : ListView.separated(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                itemCount: _notifications.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (_, i) {
+                  final n = _notifications[i];
+                  return _NotificationTile(
+                    notification: n,
+                    onTap: () => _openDetail(n),
+                    onDelete: () => _delete(n.id),
+                  );
+                },
+              ),
+      ),
     );
   }
 }

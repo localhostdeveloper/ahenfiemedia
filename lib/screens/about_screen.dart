@@ -33,252 +33,255 @@ class _AboutScreenState extends State<AboutScreen> {
         title: const Text(AppConstants.aboutUsLabel),
         backgroundColor: colors.background,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // ── Brand Hero ───────────────────────────────────────
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: isDark
-                      ? const [Color(0xFF1A1000), Color(0xFF0F0F0F)]
-                      : const [Color(0xFFF5ECDA), Color(0xFFEDE3CE)],
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // ── Brand Hero ───────────────────────────────────────
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isDark
+                        ? const [Color(0xFF1A1000), Color(0xFF0F0F0F)]
+                        : const [Color(0xFFFFFFFF), Color(0xFFFBF3E2)],
+                  ),
+                ),
+                padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primaryGold, width: 2),
+                        color: AppColors.primaryGold.withValues(alpha: 0.1),
+                      ),
+                      child: const Icon(
+                        Icons.radio_rounded,
+                        color: AppColors.primaryGold,
+                        size: 44,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'AHENFIE MEDIA',
+                      style: TextStyle(
+                        color: context.colors.accentText,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      AppConstants.appTagline,
+                      style: TextStyle(
+                        color: colors.textMuted,
+                        fontSize: 11,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppConstants.kumasiTagline,
+                      style: TextStyle(
+                        color: colors.textMuted,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
-              child: Column(
-                children: [
-                  Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primaryGold, width: 2),
-                      color: AppColors.primaryGold.withValues(alpha: 0.1),
-                    ),
-                    child: const Icon(
-                      Icons.radio_rounded,
-                      color: AppColors.primaryGold,
-                      size: 44,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'AHENFIE MEDIA',
-                    style: TextStyle(
-                      color: AppColors.primaryGold,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    AppConstants.appTagline,
-                    style: TextStyle(
-                      color: colors.textMuted,
-                      fontSize: 11,
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppConstants.kumasiTagline,
-                    style: TextStyle(
-                      color: colors.textMuted,
-                      fontSize: 10,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            // ── Description ──────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    AppConstants.aboutWhoWeAreLabel,
-                    style: TextStyle(
-                      color: AppColors.primaryGold,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
+              // ── Description ──────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppConstants.aboutWhoWeAreLabel,
+                      style: TextStyle(
+                        color: context.colors.accentText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    AppConstants.aboutAppDescription.trim(),
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 14,
-                      height: 1.7,
+                    const SizedBox(height: 12),
+                    Text(
+                      AppConstants.aboutAppDescription.trim(),
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: 14,
+                        height: 1.7,
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 28),
+                    const SizedBox(height: 28),
 
-                  // ── Services row ─────────────────────────────────
-                  const Text(
-                    AppConstants.aboutWhatWeOfferLabel,
-                    style: TextStyle(
-                      color: AppColors.primaryGold,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
+                    // ── Services row ─────────────────────────────────
+                    Text(
+                      AppConstants.aboutWhatWeOfferLabel,
+                      style: TextStyle(
+                        color: context.colors.accentText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _ServiceChip(
-                        icon: Icons.radio_rounded,
-                        label: AppConstants.liveRadioTab,
-                      ),
-                      const SizedBox(width: 10),
-                      _ServiceChip(icon: Icons.tv_rounded, label: AppConstants.liveTVTab),
-                      const SizedBox(width: 10),
-                      _ServiceChip(
-                        icon: Icons.mic_rounded,
-                        label: AppConstants.podcastsLabel,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      _ServiceChip(
-                        icon: Icons.article_rounded,
-                        label: AppConstants.newsLabel,
-                      ),
-                      const SizedBox(width: 10),
-                      _ServiceChip(
-                        icon: Icons.event_rounded,
-                        label: AppConstants.eventsLabel,
-                      ),
-                      const SizedBox(width: 10),
-                      _ServiceChip(
-                        icon: Icons.play_circle_rounded,
-                        label: AppConstants.videosLabel,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── Social ───────────────────────────────────────
-                  const Text(
-                    AppConstants.aboutFindOnlineLabel,
-                    style: TextStyle(
-                      color: AppColors.primaryGold,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: colors.card,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    const SizedBox(height: 16),
+                    Row(
                       children: [
-                        _SocialBadge(
-                          icon: FontAwesomeIcons.facebook,
-                          color: const Color(0xFF1877F2),
-                          label: AppConstants.facebookLabel,
+                        _ServiceChip(
+                          icon: Icons.radio_rounded,
+                          label: AppConstants.liveRadioTab,
                         ),
-                        _SocialBadge(
-                          icon: FontAwesomeIcons.youtube,
-                          color: const Color(0xFFFF0000),
-                          label: AppConstants.youtubeLabel,
-                        ),
-                        _SocialBadge(
-                          icon: FontAwesomeIcons.tiktok,
-                          color: const Color(0xFFEE1D52),
-                          label: AppConstants.tiktokLabel,
-                        ),
-                        _SocialBadge(
-                          icon: FontAwesomeIcons.instagram,
-                          color: const Color(0xFFE4405F),
-                          label: AppConstants.instagramLabel,
+                        const SizedBox(width: 10),
+                        _ServiceChip(icon: Icons.tv_rounded, label: AppConstants.liveTVTab),
+                        const SizedBox(width: 10),
+                        _ServiceChip(
+                          icon: Icons.mic_rounded,
+                          label: AppConstants.podcastsLabel,
                         ),
                       ],
                     ),
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── Version info ─────────────────────────────────
-                  FutureBuilder<PackageInfo>(
-                    future: _packageInfo,
-                    builder: (context, snap) {
-                      final version = snap.data?.version ?? '—';
-                      final build = snap.data?.buildNumber ?? '';
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: colors.card,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: AppColors.primaryGold.withValues(alpha: 0.1),
-                          ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _ServiceChip(
+                          icon: Icons.article_rounded,
+                          label: AppConstants.newsLabel,
                         ),
-                        child: Column(
-                          children: [
-                            _InfoRow(
-                              label: AppConstants.appVersionLabel,
-                              value: '$version ($build)',
-                            ),
-                            Divider(
-                              color: colors.divider,
-                              height: 20,
-                            ),
-                            _InfoRow(
-                              label: AppConstants.developerLabel,
-                              value: AppConstants.appDeveloper,
-                            ),
-                            Divider(
-                              color: colors.divider,
-                              height: 20,
-                            ),
-                            _InfoRow(
-                              label: AppConstants.contactLabel,
-                              value: Env.supportEmail,
-                            ),
-                          ],
+                        const SizedBox(width: 10),
+                        _ServiceChip(
+                          icon: Icons.event_rounded,
+                          label: AppConstants.eventsLabel,
                         ),
-                      );
-                    },
-                  ),
+                        const SizedBox(width: 10),
+                        _ServiceChip(
+                          icon: Icons.play_circle_rounded,
+                          label: AppConstants.videosLabel,
+                        ),
+                      ],
+                    ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
-                  Center(
-                    child: Text(
-                      '© 2025 ${AppConstants.appTitle}. All rights reserved.',
+                    // ── Social ───────────────────────────────────────
+                    Text(
+                      AppConstants.aboutFindOnlineLabel,
                       style: TextStyle(
-                        color: colors.textMuted,
-                        fontSize: 12,
+                        color: context.colors.accentText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: colors.card,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _SocialBadge(
+                            icon: FontAwesomeIcons.facebook,
+                            color: const Color(0xFF1877F2),
+                            label: AppConstants.facebookLabel,
+                          ),
+                          _SocialBadge(
+                            icon: FontAwesomeIcons.youtube,
+                            color: const Color(0xFFFF0000),
+                            label: AppConstants.youtubeLabel,
+                          ),
+                          _SocialBadge(
+                            icon: FontAwesomeIcons.tiktok,
+                            color: const Color(0xFFEE1D52),
+                            label: AppConstants.tiktokLabel,
+                          ),
+                          _SocialBadge(
+                            icon: FontAwesomeIcons.instagram,
+                            color: const Color(0xFFE4405F),
+                            label: AppConstants.instagramLabel,
+                          ),
+                        ],
+                      ),
+                    ),
 
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 28),
+
+                    // ── Version info ─────────────────────────────────
+                    FutureBuilder<PackageInfo>(
+                      future: _packageInfo,
+                      builder: (context, snap) {
+                        final version = snap.data?.version ?? '—';
+                        final build = snap.data?.buildNumber ?? '';
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: colors.card,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: AppColors.primaryGold.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              _InfoRow(
+                                label: AppConstants.appVersionLabel,
+                                value: '$version ($build)',
+                              ),
+                              Divider(
+                                color: colors.divider,
+                                height: 20,
+                              ),
+                              _InfoRow(
+                                label: AppConstants.developerLabel,
+                                value: AppConstants.appDeveloper,
+                              ),
+                              Divider(
+                                color: colors.divider,
+                                height: 20,
+                              ),
+                              _InfoRow(
+                                label: AppConstants.contactLabel,
+                                value: Env.supportEmail,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    Center(
+                      child: Text(
+                        '© 2025 ${AppConstants.appTitle}. All rights reserved.',
+                        style: TextStyle(
+                          color: colors.textMuted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

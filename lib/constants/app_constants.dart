@@ -64,6 +64,7 @@ class AppConstants {
   // ── EPG / Program ─────────────────────────────────────────────────────────
   static const String nowAiringLabel = 'NOW AIRING';
   static const String liveLabel      = 'LIVE';
+  static const String skipToLiveLabel = 'Skip to live';
   static const String nowLabel       = 'NOW';
   static const String hdLabel        = 'HD';
   static const String retryLabel     = 'Retry';
@@ -78,8 +79,7 @@ class AppConstants {
   static const String socialMediaLabel        = 'Social Media';
   static const String socialMediaSectionLabel = 'SOCIAL MEDIA';
   static const String viewAllLabel            = 'View All';
-  static const String viewFeedsLabel          = 'VIEW\nFEEDS';
-  static const String followUsLabel           = 'FOLLOW US';
+  static const String followUsLabel           = 'Follow Us';
   static const String followUsSubtitle        = 'Stay connected across all platforms';
   static const String listenAnytimeLabel      = 'LISTEN ANYTIME,\nANYWHERE';
   static const String listenSubtitle          = 'Ahenfie Media is with you';

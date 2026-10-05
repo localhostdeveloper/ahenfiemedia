@@ -584,10 +584,10 @@ class _ScheduleSheet extends StatelessWidget {
                             color: AppColors.primaryGold.withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
+                          child: Text(
                             AppConstants.scheduleSheetBadge,
                             style: TextStyle(
-                              color: AppColors.primaryGold,
+                              color: context.colors.accentText,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -633,7 +633,8 @@ class _ScheduleSheet extends StatelessWidget {
 
                     return ListView.builder(
                       controller: scrollController,
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      padding: EdgeInsets.fromLTRB(
+                          16, 0, 16, 24 + MediaQuery.paddingOf(context).bottom),
                       physics: const BouncingScrollPhysics(),
                       itemCount: programs.length,
                       itemBuilder: (_, i) => ProgramScheduleCard(

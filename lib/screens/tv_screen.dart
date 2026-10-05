@@ -8,6 +8,7 @@ import 'package:screen_brightness/screen_brightness.dart';
 
 import '../constants/app_constants.dart';
 import '../core/theme/app_colors.dart';
+import '../providers/pip_provider.dart';
 import '../providers/tv_player_provider.dart';
 import '../widgets/tv_epg_section.dart';
 
@@ -40,6 +41,9 @@ class _TVScreenState extends ConsumerState<TVScreen>
   bool? _dragOnLeft;
   Timer? _hideOverlayTimer;
   Timer? _hidePlayPauseTimer;
+
+  // Cached so dispose() can disarm PiP without touching ref
+  late final PipNotifier _pip = ref.read(pipProvider.notifier);
 
   @override
   void initState() {
@@ -82,6 +86,7 @@ class _TVScreenState extends ConsumerState<TVScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _pip.setAutoEnter(false);
     _hideOverlayTimer?.cancel();
     _hidePlayPauseTimer?.cancel();
     ScreenBrightness().resetApplicationScreenBrightness().catchError((_) {});
@@ -141,6 +146,12 @@ class _TVScreenState extends ConsumerState<TVScreen>
     }
   }
 
+  void _goLive() {
+    // A deliberate double-tap pause is over once the viewer jumps to live
+    setState(() => _isPaused = false);
+    ref.read(tvPlayerProvider.notifier).goLive();
+  }
+
   void _togglePlayPause() {
     final notifier = ref.read(tvPlayerProvider.notifier);
     setState(() {
@@ -163,6 +174,32 @@ class _TVScreenState extends ConsumerState<TVScreen>
     final tvState = ref.watch(tvPlayerProvider);
     final isPlaying = tvState.state == TVPlayerState.playing;
     final colors = context.colors;
+    final inPip = ref.watch(pipProvider);
+    final pipSupported = ref.watch(pipSupportedProvider).value ?? false;
+
+    // Arm PiP only while live TV is playing and this tab is on screen (not
+    // covered by a pushed page), so leaving the app floats the video.
+    final wantPip =
+        isPlaying && !_isPaused && (ModalRoute.of(context)?.isCurrent ?? true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _pip.setAutoEnter(wantPip);
+    });
+
+    // Inside the PiP window: just the video
+    if (inPip) {
+      return ColoredBox(
+        color: Colors.black,
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: _VideoContent(
+              tvState: tvState,
+              onRetry: () => ref.read(tvPlayerProvider.notifier).retry(),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -197,35 +234,69 @@ class _TVScreenState extends ConsumerState<TVScreen>
                             ref.read(tvPlayerProvider.notifier).retry(),
                       ),
 
-                      // LIVE badge
+                      // LIVE badge — grey and tappable when behind live,
+                      // with a "Skip to live" button after resuming a pause.
+                      // Kept at the top, clear of the players' bottom controls.
                       if (isPlaying)
                         Positioned(
                           top: 10,
                           left: 12,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.circle,
-                                    color: Colors.white, size: 6),
-                                SizedBox(width: 5),
-                                Text(
-                                  AppConstants.liveLabel,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1,
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: tvState.behindLive ? _goLive : null,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: tvState.behindLive
+                                        ? const Color(0xFF5A5A5A)
+                                        : Colors.red,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.circle,
+                                          color: Colors.white, size: 6),
+                                      SizedBox(width: 5),
+                                      Text(
+                                        AppConstants.liveLabel,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
+                              ),
+                              if (tvState.behindLive) ...[
+                                const SizedBox(width: 8),
+                                _SkipToLiveButton(onTap: _goLive),
+                              ],
+                            ],
+                          ),
+                        ),
+
+                      // Picture-in-picture button
+                      if (isPlaying && pipSupported)
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: IconButton(
+                            tooltip: 'Picture-in-picture',
+                            onPressed: _pip.enter,
+                            icon: const Icon(
+                              Icons.picture_in_picture_alt_rounded,
+                              color: Colors.white,
+                              size: 22,
+                              shadows: [
+                                Shadow(color: Colors.black54, blurRadius: 6),
                               ],
                             ),
                           ),
@@ -367,10 +438,10 @@ class _TVScreenState extends ConsumerState<TVScreen>
                   color: colors.textMuted.withValues(alpha: 0.4),
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   AppConstants.tvEPGLabel,
                   style: TextStyle(
-                    color: AppColors.primaryGold,
+                    color: context.colors.accentText,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 1,
@@ -389,6 +460,44 @@ class _TVScreenState extends ConsumerState<TVScreen>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+class _SkipToLiveButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SkipToLiveButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.primaryGold,
+      borderRadius: BorderRadius.circular(20),
+      elevation: 3,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.skip_next_rounded, color: Colors.black, size: 18),
+              SizedBox(width: 4),
+              Text(
+                AppConstants.skipToLiveLabel,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _GestureIndicator extends StatelessWidget {
   final IconData icon;
   final double value;

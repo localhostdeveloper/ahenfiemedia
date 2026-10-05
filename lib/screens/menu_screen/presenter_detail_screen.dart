@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../models/presenter.dart';
+import '../../widgets/app_network_image.dart';
 
 class PresenterDetailScreen extends StatelessWidget {
   final Presenter presenter;
@@ -14,105 +15,108 @@ class PresenterDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: CustomScrollView(
-        slivers: [
-          // ── Photo header ─────────────────────────────────────────
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            backgroundColor: colors.background,
-            flexibleSpace: FlexibleSpaceBar(
-              background: presenter.imageUrl != null
-                  ? Image.network(
-                      presenter.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _PlaceholderPhoto(),
-                    )
-                  : _PlaceholderPhoto(),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Name + title ────────────────────────────────
-                  Text(
-                    presenter.name,
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryGold.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                          color: AppColors.primaryGold.withValues(alpha: 0.3)),
-                    ),
-                    child: Text(
-                      presenter.title,
-                      style: const TextStyle(
-                        color: AppColors.primaryGold,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-
-                  // ── Bio ─────────────────────────────────────────
-                  if (presenter.bio.isNotEmpty) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      'About',
-                      style: TextStyle(
-                        color: colors.textMuted,
-                        fontSize: 11,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      presenter.bio,
-                      style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: 14,
-                        height: 1.65,
-                      ),
-                    ),
-                  ],
-
-                  // ── Programs ────────────────────────────────────
-                  if (presenter.programs.isNotEmpty) ...[
-                    const SizedBox(height: 28),
-                    Text(
-                      'PROGRAMS',
-                      style: TextStyle(
-                        color: colors.textMuted,
-                        fontSize: 11,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    ...presenter.programs.map(
-                      (p) => _ProgramCard(program: p),
-                    ),
-                  ],
-                ],
+      body: SafeArea(
+        top: false,
+        child: CustomScrollView(
+          slivers: [
+            // ── Photo header ─────────────────────────────────────────
+            SliverAppBar(
+              expandedHeight: 300,
+              pinned: true,
+              backgroundColor: colors.background,
+              flexibleSpace: FlexibleSpaceBar(
+                background: presenter.imageUrl != null
+                    ? AppNetworkImage(
+                        url: presenter.imageUrl!,
+                        fit: BoxFit.cover,
+                        error: _PlaceholderPhoto(),
+                      )
+                    : _PlaceholderPhoto(),
               ),
             ),
-          ),
-        ],
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Name + title ────────────────────────────────
+                    Text(
+                      presenter.name,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryGold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                            color: AppColors.primaryGold.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        presenter.title,
+                        style: TextStyle(
+                          color: context.colors.accentText,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    // ── Bio ─────────────────────────────────────────
+                    if (presenter.bio.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        'About',
+                        style: TextStyle(
+                          color: colors.textMuted,
+                          fontSize: 11,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        presenter.bio,
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: 14,
+                          height: 1.65,
+                        ),
+                      ),
+                    ],
+
+                    // ── Programs ────────────────────────────────────
+                    if (presenter.programs.isNotEmpty) ...[
+                      const SizedBox(height: 28),
+                      Text(
+                        'PROGRAMS',
+                        style: TextStyle(
+                          color: colors.textMuted,
+                          fontSize: 11,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ...presenter.programs.map(
+                        (p) => _ProgramCard(program: p),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -200,8 +204,8 @@ class _ProgramCard extends StatelessWidget {
             ),
             child: Text(
               isTV ? 'TV' : 'RADIO',
-              style: const TextStyle(
-                color: AppColors.primaryGold,
+              style: TextStyle(
+                color: context.colors.accentText,
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.5,

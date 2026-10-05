@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/presenter.dart';
 import '../../providers/presenter_provider.dart';
 import 'presenter_detail_screen.dart';
+import '../../widgets/app_network_image.dart';
 
 class PresentersScreen extends ConsumerWidget {
   const PresentersScreen({super.key});
@@ -26,14 +27,17 @@ class PresentersScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: presentersAsync.when(
-        loading: () => const _LoadingGrid(),
-        error: (_, _) => _ErrorView(
-          onRetry: () => ref.invalidate(presentersProvider),
+      body: SafeArea(
+        top: false,
+        child: presentersAsync.when(
+          loading: () => const _LoadingGrid(),
+          error: (_, _) => _ErrorView(
+            onRetry: () => ref.invalidate(presentersProvider),
+          ),
+          data: (presenters) => presenters.isEmpty
+              ? const _EmptyView()
+              : _PresenterGrid(presenters: presenters),
         ),
-        data: (presenters) => presenters.isEmpty
-            ? const _EmptyView()
-            : _PresenterGrid(presenters: presenters),
       ),
     );
   }
@@ -97,14 +101,11 @@ class _PresenterCard extends StatelessWidget {
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(16)),
                 child: presenter.imageUrl != null
-                    ? Image.network(
-                        presenter.imageUrl!,
+                    ? AppNetworkImage(
+                        url: presenter.imageUrl!,
                         fit: BoxFit.cover,
-                        loadingBuilder: (_, child, progress) =>
-                            progress == null
-                                ? child
-                                : _PhotoShimmer(),
-                        errorBuilder: (_, _, _) => _PhotoPlaceholder(),
+                        placeholder: _PhotoShimmer(),
+                        error: _PhotoPlaceholder(),
                       )
                     : _PhotoPlaceholder(),
               ),
@@ -150,8 +151,8 @@ class _PresenterCard extends StatelessWidget {
                                 .join(', '),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.primaryGold,
+                            style: TextStyle(
+                              color: context.colors.accentText,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                             ),
@@ -316,9 +317,9 @@ class _ErrorView extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded,
                   color: AppColors.primaryGold),
-              label: const Text('Retry',
+              label: Text('Retry',
                   style: TextStyle(
-                      color: AppColors.primaryGold,
+                      color: context.colors.accentText,
                       fontWeight: FontWeight.w600)),
             ),
           ],

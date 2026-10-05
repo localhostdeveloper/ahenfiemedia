@@ -44,65 +44,68 @@ class _NotificationDetailScreenState
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Icon + title ───────────────────────────────────
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryGold.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Icon + title ───────────────────────────────────
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryGold.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.notifications_active_rounded,
+                        color: AppColors.primaryGold, size: 24),
                   ),
-                  child: const Icon(Icons.notifications_active_rounded,
-                      color: AppColors.primaryGold, size: 24),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        n.title,
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          height: 1.3,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          n.title,
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            height: 1.3,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatFull(n.timestamp),
-                        style: TextStyle(
-                            color: colors.textMuted, fontSize: 12),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatFull(n.timestamp),
+                          style: TextStyle(
+                              color: colors.textMuted, fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-            Divider(color: colors.divider),
-            const SizedBox(height: 16),
-
-            // ── Body ───────────────────────────────────────────
-            Text(
-              n.body,
-              style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 15,
-                height: 1.65,
+                ],
               ),
-            ),
-          ],
+
+              const SizedBox(height: 20),
+              Divider(color: colors.divider),
+              const SizedBox(height: 16),
+
+              // ── Body ───────────────────────────────────────────
+              Text(
+                n.body,
+                style: TextStyle(
+                  color: colors.textSecondary,
+                  fontSize: 15,
+                  height: 1.65,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

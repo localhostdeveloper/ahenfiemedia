@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../widgets/app_network_image.dart';
 
 // ── Model ──────────────────────────────────────────────────────────────────
 
@@ -71,45 +72,48 @@ class ShowsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: showsAsync.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryGold)),
-        error: (_, _) => _ErrorView(onRetry: () => ref.invalidate(_showsProvider)),
-        data: (shows) {
-          if (shows.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.live_tv_outlined, size: 52, color: colors.textMuted),
-                  const SizedBox(height: 14),
-                  Text('No shows available yet.',
-                      style: TextStyle(color: colors.textMuted, fontSize: 14)),
+      body: SafeArea(
+        top: false,
+        child: showsAsync.when(
+          loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGold)),
+          error: (_, _) => _ErrorView(onRetry: () => ref.invalidate(_showsProvider)),
+          data: (shows) {
+            if (shows.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.live_tv_outlined, size: 52, color: colors.textMuted),
+                    const SizedBox(height: 14),
+                    Text('No shows available yet.',
+                        style: TextStyle(color: colors.textMuted, fontSize: 14)),
+                  ],
+                ),
+              );
+            }
+
+            // Split by type
+            final tvShows =
+                shows.where((s) => s.type == 'tv').toList();
+            final radioShows =
+                shows.where((s) => s.type == 'radio').toList();
+
+            return ListView(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              children: [
+                if (tvShows.isNotEmpty) ...[
+                  _SectionHeader('TV SHOWS', colors),
+                  ...tvShows.map((s) => _ShowCard(show: s, colors: colors)),
                 ],
-              ),
+                if (radioShows.isNotEmpty) ...[
+                  _SectionHeader('RADIO SHOWS', colors),
+                  ...radioShows.map((s) => _ShowCard(show: s, colors: colors)),
+                ],
+              ],
             );
-          }
-
-          // Split by type
-          final tvShows =
-              shows.where((s) => s.type == 'tv').toList();
-          final radioShows =
-              shows.where((s) => s.type == 'radio').toList();
-
-          return ListView(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            children: [
-              if (tvShows.isNotEmpty) ...[
-                _SectionHeader('TV SHOWS', colors),
-                ...tvShows.map((s) => _ShowCard(show: s, colors: colors)),
-              ],
-              if (radioShows.isNotEmpty) ...[
-                _SectionHeader('RADIO SHOWS', colors),
-                ...radioShows.map((s) => _ShowCard(show: s, colors: colors)),
-              ],
-            ],
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -159,12 +163,12 @@ class _ShowCard extends StatelessWidget {
             borderRadius:
                 const BorderRadius.horizontal(left: Radius.circular(14)),
             child: show.imageUrl != null
-                ? Image.network(
-                    show.imageUrl!,
+                ? AppNetworkImage(
+                    url: show.imageUrl!,
                     width: 90,
                     height: 90,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _placeholder(colors),
+                    error: _placeholder(colors),
                   )
                 : _placeholder(colors),
           ),
@@ -202,7 +206,7 @@ class _ShowCard extends StatelessWidget {
                           show.type.toUpperCase(),
                           style: TextStyle(
                             color: show.type == 'tv'
-                                ? AppColors.primaryGold
+                                ? context.colors.accentText
                                 : const Color(0xFF3B82F6),
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
@@ -283,9 +287,9 @@ class _ErrorView extends StatelessWidget {
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded,
                 color: AppColors.primaryGold),
-            label: const Text('Retry',
+            label: Text('Retry',
                 style: TextStyle(
-                    color: AppColors.primaryGold,
+                    color: context.colors.accentText,
                     fontWeight: FontWeight.w600)),
           ),
         ],

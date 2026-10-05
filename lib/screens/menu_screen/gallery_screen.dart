@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../widgets/app_network_image.dart';
 
 // ── Model ──────────────────────────────────────────────────────────────────
 
@@ -33,7 +34,8 @@ final _galleryProvider = FutureProvider<List<_GalleryItem>>((_) async {
   final rows = await Supabase.instance.client
       .from('gallery')
       .select()
-      .order('display_order');
+      .order('display_order')
+      .limit(150);
   return (rows as List)
       .map((r) => _GalleryItem.fromMap(r as Map<String, dynamic>))
       .toList();
@@ -68,91 +70,94 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
           ),
         ],
       ),
-      body: galleryAsync.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryGold)),
-        error: (_, _) =>
-            _ErrorView(onRetry: () => ref.invalidate(_galleryProvider)),
-        data: (items) {
-          if (items.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.photo_library_outlined,
-                      size: 52, color: colors.textMuted),
-                  const SizedBox(height: 14),
-                  Text('No photos yet.',
-                      style:
-                          TextStyle(color: colors.textMuted, fontSize: 14)),
-                ],
-              ),
+      body: SafeArea(
+        top: false,
+        child: galleryAsync.when(
+          loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGold)),
+          error: (_, _) =>
+              _ErrorView(onRetry: () => ref.invalidate(_galleryProvider)),
+          data: (items) {
+            if (items.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.photo_library_outlined,
+                        size: 52, color: colors.textMuted),
+                    const SizedBox(height: 14),
+                    Text('No photos yet.',
+                        style:
+                            TextStyle(color: colors.textMuted, fontSize: 14)),
+                  ],
+                ),
+              );
+            }
+
+            // Build category filter chips
+            final categories = items
+                .map((i) => i.category)
+                .whereType<String>()
+                .toSet()
+                .toList()
+              ..sort();
+
+            final filtered = _selectedCategory == null
+                ? items
+                : items
+                    .where((i) => i.category == _selectedCategory)
+                    .toList();
+
+            return Column(
+              children: [
+                // Category filter
+                if (categories.isNotEmpty)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                    child: Row(
+                      children: [
+                        _FilterChip(
+                          label: 'All',
+                          selected: _selectedCategory == null,
+                          colors: colors,
+                          onTap: () =>
+                              setState(() => _selectedCategory = null),
+                        ),
+                        ...categories.map((cat) => _FilterChip(
+                              label: cat,
+                              selected: _selectedCategory == cat,
+                              colors: colors,
+                              onTap: () =>
+                                  setState(() => _selectedCategory = cat),
+                            )),
+                      ],
+                    ),
+                  ),
+
+                // Photo grid
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(12),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: filtered.length,
+                    itemBuilder: (_, i) => _PhotoTile(
+                      item: filtered[i],
+                      colors: colors,
+                      onTap: () => _openPhoto(context, filtered, i),
+                    ),
+                  ),
+                ),
+              ],
             );
-          }
-
-          // Build category filter chips
-          final categories = items
-              .map((i) => i.category)
-              .whereType<String>()
-              .toSet()
-              .toList()
-            ..sort();
-
-          final filtered = _selectedCategory == null
-              ? items
-              : items
-                  .where((i) => i.category == _selectedCategory)
-                  .toList();
-
-          return Column(
-            children: [
-              // Category filter
-              if (categories.isNotEmpty)
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-                  child: Row(
-                    children: [
-                      _FilterChip(
-                        label: 'All',
-                        selected: _selectedCategory == null,
-                        colors: colors,
-                        onTap: () =>
-                            setState(() => _selectedCategory = null),
-                      ),
-                      ...categories.map((cat) => _FilterChip(
-                            label: cat,
-                            selected: _selectedCategory == cat,
-                            colors: colors,
-                            onTap: () =>
-                                setState(() => _selectedCategory = cat),
-                          )),
-                    ],
-                  ),
-                ),
-
-              // Photo grid
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 1,
-                  ),
-                  itemCount: filtered.length,
-                  itemBuilder: (_, i) => _PhotoTile(
-                    item: filtered[i],
-                    colors: colors,
-                    onTap: () => _openPhoto(context, filtered, i),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -229,10 +234,10 @@ class _PhotoTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(
-              item.imageUrl,
+            AppNetworkImage(
+              url: item.imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
+              error: Container(
                 color: colors.surface,
                 child: const Icon(Icons.broken_image_outlined,
                     color: AppColors.primaryGold, size: 32),
@@ -332,10 +337,11 @@ class _PhotoViewScreenState extends State<_PhotoViewScreen> {
         onPageChanged: (i) => setState(() => _current = i),
         itemBuilder: (_, i) => InteractiveViewer(
           child: Center(
-            child: Image.network(
-              widget.items[i].imageUrl,
+            child: AppNetworkImage(
+              url: widget.items[i].imageUrl,
               fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => const Icon(
+              fullResolution: true,
+              error: const Icon(
                   Icons.broken_image_outlined,
                   color: Colors.white54,
                   size: 48),
@@ -370,9 +376,9 @@ class _ErrorView extends StatelessWidget {
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded,
                 color: AppColors.primaryGold),
-            label: const Text('Retry',
+            label: Text('Retry',
                 style: TextStyle(
-                    color: AppColors.primaryGold,
+                    color: context.colors.accentText,
                     fontWeight: FontWeight.w600)),
           ),
         ],

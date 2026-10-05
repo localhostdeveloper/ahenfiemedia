@@ -64,21 +64,11 @@ class HomeFeedScreen extends ConsumerWidget {
 
         const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-        // ── Social media teaser ────────────────────────────────
+        // ── Follow Us ──────────────────────────────────────────
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverToBoxAdapter(
-            child: _SocialTeaser(onPushSelect: onPushSelect),
-          ),
-        ),
-
-        const SliverToBoxAdapter(child: SizedBox(height: 28)),
-
-        // ── Follow Us banner ───────────────────────────────────
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverToBoxAdapter(
-            child: _FollowUsBanner(onPushSelect: onPushSelect),
+            child: _SocialSection(onPushSelect: onPushSelect),
           ),
         ),
 
@@ -377,8 +367,8 @@ class _LiveCard extends StatelessWidget {
                   children: [
                     Text(
                       cta,
-                      style: const TextStyle(
-                        color: AppColors.primaryGold,
+                      style: TextStyle(
+                        color: context.colors.accentText,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -400,12 +390,12 @@ class _LiveCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Social media teaser
+// Follow Us — one tappable tile per platform
 // ─────────────────────────────────────────────────────────────────────────────
-class _SocialTeaser extends StatelessWidget {
+class _SocialSection extends StatelessWidget {
   final ValueChanged<String> onPushSelect;
 
-  const _SocialTeaser({required this.onPushSelect});
+  const _SocialSection({required this.onPushSelect});
 
   @override
   Widget build(BuildContext context) {
@@ -414,22 +404,37 @@ class _SocialTeaser extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(
-              AppConstants.socialMediaLabel,
-              style: TextStyle(
-                color: colors.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppConstants.followUsLabel,
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    AppConstants.followUsSubtitle,
+                    style: TextStyle(
+                      color: colors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
             ),
             TextButton(
               onPressed: () => onPushSelect(AppConstants.socialMediaLabel),
-              child: const Text(
+              child: Text(
                 AppConstants.viewAllLabel,
                 style: TextStyle(
-                  color: AppColors.primaryGold,
+                  color: context.colors.accentText,
                   fontSize: 13,
                 ),
               ),
@@ -437,42 +442,57 @@ class _SocialTeaser extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            _PlatformPill(
-              icon: FontAwesomeIcons.youtube,
-              label: AppConstants.youtubeLabel,
-              color: const Color(0xFFFF0000),
-              onTap: () => onPushSelect(AppConstants.youtubeLabel),
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: colors.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.primaryGold.withValues(alpha: 0.15),
             ),
-            const SizedBox(width: 10),
-            _PlatformPill(
-              icon: FontAwesomeIcons.facebook,
-              label: AppConstants.facebookLabel,
-              color: const Color(0xFF1877F2),
-              onTap: () => onPushSelect(AppConstants.facebookLabel),
-            ),
-            const SizedBox(width: 10),
-            _PlatformPill(
-              icon: FontAwesomeIcons.tiktok,
-              label: AppConstants.tiktokLabel,
-              color: const Color(0xFFEE1D52),
-              onTap: () => onPushSelect(AppConstants.tiktokLabel),
-            ),
-          ],
+          ),
+          child: Row(
+            children: [
+              _SocialTile(
+                icon: FontAwesomeIcons.youtube,
+                label: AppConstants.youtubeLabel,
+                color: const Color(0xFFFF0000),
+                onTap: () => onPushSelect(AppConstants.youtubeLabel),
+              ),
+              _SocialTile(
+                icon: FontAwesomeIcons.facebookF,
+                label: AppConstants.facebookLabel,
+                color: const Color(0xFF1877F2),
+                onTap: () => onPushSelect(AppConstants.facebookLabel),
+              ),
+              _SocialTile(
+                icon: FontAwesomeIcons.instagram,
+                label: AppConstants.instagramLabel,
+                color: const Color(0xFFE4405F),
+                onTap: () => onPushSelect(AppConstants.instagramLabel),
+              ),
+              // TikTok's mark is black/white, so follow the theme's text colour
+              _SocialTile(
+                icon: FontAwesomeIcons.tiktok,
+                label: AppConstants.tiktokLabel,
+                color: colors.textPrimary,
+                onTap: () => onPushSelect(AppConstants.tiktokLabel),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 }
 
-class _PlatformPill extends StatelessWidget {
+class _SocialTile extends StatelessWidget {
   final FaIconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _PlatformPill({
+  const _SocialTile({
     required this.icon,
     required this.label,
     required this.color,
@@ -482,154 +502,45 @@ class _PlatformPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withValues(alpha: 0.25)),
-          ),
-          child: Column(
-            children: [
-              FaIcon(icon, color: color, size: 22),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Follow Us banner
-// ─────────────────────────────────────────────────────────────────────────────
-class _FollowUsBanner extends StatelessWidget {
-  final ValueChanged<String> onPushSelect;
-
-  const _FollowUsBanner({required this.onPushSelect});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.primaryGold.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppConstants.followUsLabel,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
+      child: Semantics(
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(child: FaIcon(icon, color: color, size: 20)),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  AppConstants.followUsSubtitle,
-                  style: TextStyle(
-                    color: colors.textSecondary,
-                    fontSize: 12,
+                  const SizedBox(height: 8),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: context.colors.textPrimary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    _SmallSocialIcon(
-                      icon: FontAwesomeIcons.facebook,
-                      color: const Color(0xFF1877F2),
-                    ),
-                    const SizedBox(width: 10),
-                    _SmallSocialIcon(
-                      icon: FontAwesomeIcons.xTwitter,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 10),
-                    _SmallSocialIcon(
-                      icon: FontAwesomeIcons.instagram,
-                      color: const Color(0xFFE4405F),
-                    ),
-                    const SizedBox(width: 10),
-                    _SmallSocialIcon(
-                      icon: FontAwesomeIcons.youtube,
-                      color: const Color(0xFFFF0000),
-                    ),
-                    const SizedBox(width: 10),
-                    _SmallSocialIcon(
-                      icon: FontAwesomeIcons.tiktok,
-                      color: const Color(0xFFEE1D52),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: () => onPushSelect(AppConstants.socialMediaLabel),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.primaryGold,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Text(
-                AppConstants.viewFeedsLabel,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                  height: 1.4,
-                ),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
-    );
-  }
-}
-
-class _SmallSocialIcon extends StatelessWidget {
-  final FaIconData icon;
-  final Color color;
-
-  const _SmallSocialIcon({required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 30,
-      height: 30,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        shape: BoxShape.circle,
-      ),
-      child: Center(child: FaIcon(icon, color: color, size: 13)),
     );
   }
 }
@@ -651,7 +562,7 @@ class _ListenBanner extends StatelessWidget {
         gradient: LinearGradient(
           colors: isDark
               ? const [Color(0xFF1A1000), Color(0xFF0F0F0F)]
-              : const [Color(0xFFF5ECDA), Color(0xFFEDE3CE)],
+              : const [Color(0xFFFFFFFF), Color(0xFFFBF3E2)],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(

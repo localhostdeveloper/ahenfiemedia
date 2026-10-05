@@ -96,10 +96,10 @@ class AppDrawer extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
-                const Text(
+                Text(
                   'AHENFIE\nMEDIA',
                   style: TextStyle(
-                    color: AppColors.primaryGold,
+                    color: context.colors.accentText,
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1,
@@ -200,7 +200,8 @@ class AppDrawer extends StatelessWidget {
           // ── Kumasi footer ────────────────────────────────────
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+            padding: EdgeInsets.fromLTRB(
+                20, 16, 20, 16 + MediaQuery.paddingOf(context).bottom),
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(color: colors.divider),
@@ -209,10 +210,10 @@ class AppDrawer extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   AppConstants.kumasiLabel,
                   style: TextStyle(
-                    color: AppColors.primaryGold,
+                    color: context.colors.accentText,
                     fontSize: 18,
                     fontStyle: FontStyle.italic,
                     fontWeight: FontWeight.w600,
@@ -356,7 +357,7 @@ class _NavTile extends StatelessWidget {
               label.toUpperCase(),
               style: TextStyle(
                 color: selected
-                    ? AppColors.primaryGold
+                    ? context.colors.accentText
                     : colors.textSecondary,
                 fontSize: 12,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,

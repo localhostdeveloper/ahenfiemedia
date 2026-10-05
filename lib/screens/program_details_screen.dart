@@ -43,8 +43,8 @@ class ProgramDetailsScreen extends StatelessWidget {
 
                 child: Text(
                   program.time,
-                  style: const TextStyle(
-                    color: AppColors.primaryGold,
+                  style: TextStyle(
+                    color: context.colors.accentText,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -129,10 +129,10 @@ class ProgramDetailsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'About Program',
                       style: TextStyle(
-                        color: AppColors.primaryGold,
+                        color: context.colors.accentText,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         letterSpacing: 1,

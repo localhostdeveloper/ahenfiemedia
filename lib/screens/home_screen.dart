@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_constants.dart';
 import '../constants/env.dart';
 import '../core/theme/app_colors.dart';
+import '../providers/pip_provider.dart';
 import '../providers/radio_player_provider.dart';
 import '../providers/tv_player_provider.dart';
 import '../widgets/app_drawer.dart';
@@ -73,6 +74,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     setState(() => _currentIndex = index);
   }
 
+  // Opens the platform's app if installed, otherwise the browser.
+  Future<void> _openExternal(String label, String url) async {
+    var opened = false;
+    if (url.isNotEmpty) {
+      try {
+        opened = await launchUrl(Uri.parse(url),
+            mode: LaunchMode.externalApplication);
+      } catch (_) {
+        opened = false;
+      }
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open $label right now.')),
+      );
+    }
+  }
+
   void _onPushSelected(String label) {
     // Social platforms open directly in external browser
     final socialUrls = <String, String>{
@@ -82,8 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       AppConstants.instagramLabel: Env.instagramUrl,
     };
     if (socialUrls.containsKey(label)) {
-      launchUrl(Uri.parse(socialUrls[label]!),
-          mode: LaunchMode.externalApplication);
+      _openExternal(label, socialUrls[label]!);
       return;
     }
 
@@ -127,6 +145,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    // In the PiP window only the TV video should show, not the app chrome
+    final inPip = ref.watch(pipProvider);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -160,82 +180,86 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onTabSelect: _onTabSelected,
           onPushSelect: _onPushSelected,
         ),
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            color: colors.textMuted,
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          ),
-          title: _currentIndex == 0
-              ? Row(
-                  children: [
-                    const Text(
-                      AppConstants.appNamePart1,
-                      style: TextStyle(
-                        color: AppColors.primaryGold,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        fontSize: 18,
+        appBar: inPip
+            ? null
+            : AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                color: colors.textMuted,
+                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              ),
+              title: _currentIndex == 0
+                  ? Row(
+                      children: [
+                        Text(
+                          AppConstants.appNamePart1,
+                          style: TextStyle(
+                            color: context.colors.accentText,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          AppConstants.appNamePart2,
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 2,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      _titles[_currentIndex],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      AppConstants.appNamePart2,
-                      style: TextStyle(
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 2,
-                        fontSize: 18,
-                      ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  color: colors.textMuted,
+                  onPressed: () => Navigator.of(context, rootNavigator: true).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationsScreen(),
                     ),
-                  ],
-                )
-              : Text(
-                  _titles[_currentIndex],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
                   ),
                 ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined),
-              color: colors.textMuted,
-              onPressed: () => Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (_) => const NotificationsScreen(),
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
         body: _tabs[_currentIndex],
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: _onTabSelected,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded),
-              label: 'Home',
+        bottomNavigationBar: inPip
+            ? null
+            : NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: _onTabSelected,
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home_rounded),
+                  label: 'Home',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.radio_outlined),
+                  selectedIcon: Icon(Icons.radio),
+                  label: 'Radio',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.tv_outlined),
+                  selectedIcon: Icon(Icons.tv),
+                  label: 'TV',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline_rounded),
+                  selectedIcon: Icon(Icons.person_rounded),
+                  label: 'Profile',
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.radio_outlined),
-              selectedIcon: Icon(Icons.radio),
-              label: 'Radio',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.tv_outlined),
-              selectedIcon: Icon(Icons.tv),
-              label: 'TV',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
-          ],
-        ),
       ),
     );
   }
