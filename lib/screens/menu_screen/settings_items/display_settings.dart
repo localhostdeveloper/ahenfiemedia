@@ -1,20 +1,14 @@
 // lib/screens/menu_screen/settings_items/display_settings.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // 🌟 NEW IMPORT 🌟
-import '../../../providers/theme_provider.dart'; // 🌟 NEW IMPORT 🌟
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/theme_provider.dart';
 
-// ❌ REMOVE: import 'package:provider/provider.dart';
-// ❌ REMOVE: import '../../../managers/theme_manager.dart';
-
-// 🌟 Convert to ConsumerWidget 🌟
 class DisplaySettings extends ConsumerWidget {
   const DisplaySettings({super.key});
 
   // --- Confirmation Dialog for Theme Change ---
-  // 🌟 Updated signature to take WidgetRef 🌟
   Future<void> _confirmThemeChange(BuildContext context, WidgetRef ref) async {
-    // 🌟 READ the current state from the provider 🌟
     final ThemeMode currentMode = ref.read(themeProvider);
 
     // Determine the state if we switch: system will become dark, light will become dark, dark will become light
@@ -42,7 +36,6 @@ class DisplaySettings extends ConsumerWidget {
     );
 
     if (result == true) {
-      // 🌟 Use the Notifier to toggle the theme 🌟
       final notifier = ref.read(themeProvider.notifier);
       notifier.toggleDarkMode(!isCurrentlyDark);
 
@@ -59,13 +52,10 @@ class DisplaySettings extends ConsumerWidget {
   }
 
   @override
-  // 🌟 Add WidgetRef to the build method signature 🌟
   Widget build(BuildContext context, WidgetRef ref) {
-    // 🌟 WATCH the current ThemeMode from the Riverpod provider 🌟
     final ThemeMode currentMode = ref.watch(themeProvider);
     final bool isDarkModeActive = currentMode == ThemeMode.dark;
 
-    // 🌟 Get the Notifier (only needed if we bypass the confirmation dialog) 🌟
     final themeNotifier = ref.read(themeProvider.notifier);
 
     return Column(
@@ -75,10 +65,8 @@ class DisplaySettings extends ConsumerWidget {
         ListTile(
           title: const Text('Dark Mode'),
           subtitle: const Text('Switch between light and dark themes.'),
-          // 🌟 Updated onTap to use the ref 🌟
           onTap: () => _confirmThemeChange(context, ref),
           trailing: Switch(
-            // 🌟 Use the watched state 🌟
             value: isDarkModeActive,
             onChanged: (bool newValue) {
               // Switch works directly for quick toggle, using the Notifier

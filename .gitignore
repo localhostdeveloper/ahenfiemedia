@@ -63,3 +63,4 @@ android/key.properties
 # Environment secrets
 .env
 env.json
+CLAUDE.md

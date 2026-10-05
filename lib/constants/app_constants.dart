@@ -1,6 +1,6 @@
 // lib/constants/app_constants.dart
 // Only static branding, labels, and non-sensitive strings.
-// All URLs, API keys, and credentials live in .env via lib/constants/env.dart
+// All URLs, API keys, and credentials come from env.json (--dart-define-from-file) via lib/constants/env.dart
 
 class AppConstants {
   // ── App Branding ──────────────────────────────────────────────────────────

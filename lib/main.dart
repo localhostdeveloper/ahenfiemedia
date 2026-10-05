@@ -26,7 +26,7 @@ void main() async {
     // 3. Supabase (for presenters data & storage)
     await Supabase.initialize(
       url: Env.supabaseUrl,
-      anonKey: Env.supabaseAnonKey,
+      publishableKey: Env.supabaseAnonKey,
     );
 
     // 4. Initialize Audio Background BEFORE other notification services
